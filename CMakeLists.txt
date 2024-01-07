@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 3.20)
+
+project(PROJECT_NAME VERSION 0.0.0 LANGUAGES CXX)
+
+set(PROJECT_NAME_MAIN_PROJECT OFF)
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+  set(PROJECT_NAME_MAIN_PROJECT ON)
+endif()
+
+if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+    message(FATAL_ERROR "In-source builds are not allowed")
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+find_package(MPI REQUIRED)
+include_directories(${MPI_INCLUDE_PATH})
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+add_subdirectory(chapter_01)
+add_subdirectory(chapter_02)
+add_subdirectory(chapter_03)
