@@ -59,7 +59,7 @@ void carloPi(int my_rank, int size) {
              MPI_COMM_WORLD);
 
   if (my_rank == 0) {
-    auto pi_estimate = 4 * (total_counter) / (double)total_n;
+    auto pi_estimate = 4 * (total_counter) / static_cast<double>(total_n);
     std::cout.precision(10);
     std::cout << std::fixed;
     std::cout << "M_PI: " << M_PI << "\n";
@@ -68,7 +68,8 @@ void carloPi(int my_rank, int size) {
 }
 
 int main(int argc, char **argv) {
-  int my_rank, size;
+  int my_rank;
+  int size;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);

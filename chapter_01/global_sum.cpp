@@ -71,7 +71,7 @@ void converge(int my_rank, int size, int divisor, int core_different,
     return;
   }
 
-  bool send = my_rank % (divisor);
+  bool send = (my_rank % (divisor)) != 0;
 
   if (send) {
     int dest = my_rank - core_different;
@@ -108,7 +108,7 @@ void convergeTree(int my_rank, int size, int stage, double *sum, int tag) {
     return;
   }
 
-  bool right_node = my_rank & stage;
+  bool right_node = (my_rank & stage) != 0;
   if (right_node) {
     // right node send message to left node
     int dst = partner;
@@ -138,7 +138,7 @@ void convergePlat(int my_rank, int size, int stage, double *sum, int tag) {
     return;
   }
 
-  bool send_then_recv = my_rank & stage;
+  bool send_then_recv = (my_rank & stage) != 0;
   if (send_then_recv) {
     int dst = partner;
     MPI_Send(sum, sizeof(decltype(*sum)), MPI_CHAR, dst, tag, MPI_COMM_WORLD);
@@ -195,7 +195,8 @@ double doSum(int my_rank, int size, Task *task) {
 }
 
 int main(int argc, char *argv[]) {
-  int my_rank, size;
+  int my_rank;
+  int size;
   Task task{0, 0};
 
   MPI_Init(&argc, &argv);

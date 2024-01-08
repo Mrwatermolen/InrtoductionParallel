@@ -26,7 +26,8 @@ double trap(double l, double r, int n, double (*f)(double));
 double func(double x) { return x * x; }
 
 int main(int argc, char *argv[]) {
-  int my_rank, size;
+  int my_rank;
+  int size;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);

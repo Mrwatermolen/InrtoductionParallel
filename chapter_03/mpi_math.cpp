@@ -20,16 +20,16 @@ void printVector(double *v, int n) {
   }
 }
 
-void serialVecAdd(double *a, double *b, double *c, int n) {
+void serialVecAdd(const double *a, const double *b, double *c, int n) {
   for (int i = 0; i < n; ++i) {
     c[i] = a[i] + b[i];
   }
 }
 
 void doAdd(double *vec_a, double *vec_b, double *vec_c, int block_size) {
-  double *local_a = new double[block_size];
-  double *local_b = new double[block_size];
-  double *local_c = new double[block_size];
+  auto *local_a = new double[block_size];
+  auto *local_b = new double[block_size];
+  auto *local_c = new double[block_size];
 
   MPI_Scatter(vec_a, block_size, MPI_DOUBLE, local_a, block_size, MPI_DOUBLE, 0,
               MPI_COMM_WORLD);
@@ -78,6 +78,7 @@ void mpiVecAdd(int my_rank, int size) {
   }
 
   MPI_Bcast(&block_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  doAdd(vec_a, vec_b, res, block_size);
 
   double *vec_c = nullptr;
   if (my_rank == 0) {
@@ -98,7 +99,7 @@ void mpiVecAdd(int my_rank, int size) {
   }
 }
 
-void serialMatrixVec(double *A, double *x, double *y, int m, int n) {
+void serialMatrixVec(const double *A, const double *x, double *y, int m, int n) {
   for (int i = 0; i < m; ++i) {
     y[i] = 0;
     for (int j = 0; j < n; ++j) {
@@ -108,26 +109,26 @@ void serialMatrixVec(double *A, double *x, double *y, int m, int n) {
 }
 
 double doMulti(double *A, double *local_x, double *y, int block_size, int n) {
-  double *local_A = new double[block_size * n];
+  auto *local_a = new double[block_size * n];
   auto s_time = std::chrono::high_resolution_clock::now();
-  // MPI_Scatter(A, block_size * n, MPI_DOUBLE, local_A, block_size * n,
-  //             MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Scatter(A, block_size * n, MPI_DOUBLE, local_a, block_size * n,
+              MPI_DOUBLE, 0, MPI_COMM_WORLD);
   auto e_time = std::chrono::high_resolution_clock::now();
   auto scatter_duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(e_time - s_time)
           .count();
 
-  double *x = new double[n];
+  auto *x = new double[n];
   MPI_Allgather(local_x, block_size, MPI_DOUBLE, x, block_size, MPI_DOUBLE,
                 MPI_COMM_WORLD);
 
-  double *local_y = new double[n];
-  serialMatrixVec(local_A, x, local_y, block_size, n);
+  auto *local_y = new double[n];
+  serialMatrixVec(local_a, x, local_y, block_size, n);
 
   MPI_Gather(local_y, block_size, MPI_DOUBLE, y, block_size, MPI_DOUBLE, 0,
              MPI_COMM_WORLD);
 
-  delete[] local_A;
+  delete[] local_a;
   delete[] x;
 
   return scatter_duration;
@@ -160,7 +161,8 @@ void mpiMatrixVec(int my_rank, int size) {
       }
     }
   }
-  std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+  std::chrono::time_point<std::chrono::high_resolution_clock> start;
+  std::chrono::time_point<std::chrono::high_resolution_clock> end;
 
   MPI_Bcast(&block_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -170,7 +172,7 @@ void mpiMatrixVec(int my_rank, int size) {
     res = new double[n];
   }
 
-  double *local_x = new double[block_size];
+  auto *local_x = new double[block_size];
   randomVector(local_x, block_size);
 
   start = std::chrono::high_resolution_clock::now();
@@ -241,7 +243,8 @@ void mpiMatrixVec(int my_rank, int size) {
 };
 
 int main(int argc, char *argv[]) {
-  int my_rank, size;
+  int my_rank;
+  int size;
 
   std::cout.precision(3);
   std::cout.setf(std::ios::fixed);

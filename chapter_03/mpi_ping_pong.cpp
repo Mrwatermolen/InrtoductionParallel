@@ -1,6 +1,7 @@
 #include <ctime>
 #include <iostream>
 #include <mpi.h>
+#include <chrono>
 
 void pingPong(int my_rank, int size) {
   int ping = 0;
@@ -38,7 +39,8 @@ void pingPong(int my_rank, int size) {
 }
 
 int main(int argc, char **argv) {
-  int my_rank, size;
+  int my_rank;
+  int size;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
