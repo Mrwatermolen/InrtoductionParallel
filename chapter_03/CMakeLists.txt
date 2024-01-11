@@ -12,3 +12,6 @@ target_link_libraries(mpi_carlo_pi ${MPI_CXX_LIBRARIES})
 
 add_executable(mpi_ping_pong mpi_ping_pong.cpp)
 target_link_libraries(mpi_ping_pong ${MPI_CXX_LIBRARIES})
+
+add_executable(mpi_histogram_bin mpi_histogram_bin.cpp)
+target_link_libraries(mpi_histogram_bin ${MPI_CXX_LIBRARIES})

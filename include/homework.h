@@ -89,28 +89,112 @@ inline auto serialImp(const TArray& data, SizeType n, SizeTypeArray&& bin_count,
 template <typename T, typename TArray, typename SizeType,
           typename SizeTypeArray>
 struct BinTask {
-  SizeType _n;
-  T _min;
-  T _max;
-  SizeType _bin_n;
-  T _bin_min;
-  T _bin_max;
+  // BinTask() = default;
 
-  TArray _data;
-  TArray _bin_maxes;
-  SizeTypeArray _bin_count;
+  // BinTask(const BinTask& rhs) {
+  //   _info = rhs._info;
+  //   _data = rhs._data;
+  //   _bin_maxes = rhs._bin_maxes;
+  //   _bin_count = rhs._bin_count;
+  // }
+
+  // // BinTask(BinTask&& rhs) noexcept {
+  // //   _info = std::move(rhs._info);
+  // //   _data = std::move(rhs._data);
+  // //   _bin_maxes = std::move(rhs._bin_maxes);
+  // //   _bin_count = std::move(rhs._bin_count);
+  // // }
+
+  // BinTask operator=(const BinTask& rhs) {
+  //   if (this == &rhs) {
+  //     return *this;
+  //   }
+
+  //   _info = rhs._info;
+  //   _data = rhs._data;
+  //   _bin_maxes = rhs._bin_maxes;
+  //   _bin_count = rhs._bin_count;
+  //   return *this;
+  // }
+
+  // BinTask operator=(BinTask&& rhs) noexcept {
+  //   if (this == &rhs) {
+  //     return *this;
+  //   }
+
+  //   _info = std::move(rhs._info);
+  //   _data = std::move(rhs._data);
+  //   _bin_maxes = std::move(rhs._bin_maxes);
+  //   _bin_count = std::move(rhs._bin_count);
+  //   return *this;
+  // }
+
+  struct BinTaskInfo {
+    SizeType _n{};
+    T _min{};
+    T _max{};
+    SizeType _bin_n{};
+    T _bin_min{};
+    T _bin_max{};
+
+    auto& n() { return _n; }
+
+    auto& min() { return _min; }
+
+    auto& max() { return _max; }
+
+    auto& binN() { return _bin_n; }
+
+    auto& binMin() { return _bin_min; }
+
+    auto& binMax() { return _bin_max; }
+
+    std::string toString() const {
+      std::stringstream ss;
+      ss << "Task:\n";
+      ss << "n: " << _n << "\n";
+      ss << "min: " << _min << "\n";
+      ss << "max: " << _max << "\n";
+      ss << "bin_n: " << _bin_n << "\n";
+      ss << "bin_min: " << _bin_min << "\n";
+      ss << "bin_max: " << _bin_max;
+      return ss.str();
+    }
+
+    static auto createFromInput() {
+      SizeType n = 0;
+      T min = 0;
+      T max = 0;
+      SizeType bin_n = 0;
+      T bin_min = 0;
+      T bin_max = 0;
+
+      std::cout << "Input n, min, max, bin_n, bin_min, bin_max:\n";
+      std::cin >> n >> min >> max >> bin_n >> bin_min >> bin_max;
+
+      return BinTaskInfo{n, min, max, bin_n, bin_min, bin_max};
+    }
+  };
+
+  BinTaskInfo _info{};
+
+  TArray _bin_maxes{};
+
+  TArray _data{};
+  SizeTypeArray _bin_count{};
 
   std::string headDataToString() {
     std::stringstream ss;
     ss << "Data: ";
     int i = 0;
+    auto&& n = _info.n();
     while (true) {
-      if (_n <= i) {
+      if (n <= i) {
         break;
       }
 
       if (i == 10) {
-        if (10 < _n) {
+        if (10 < n) {
           ss << "... ";
         }
         break;
@@ -122,43 +206,20 @@ struct BinTask {
     return ss.str();
   }
 
-  std::string taskToString() {
-    std::stringstream ss;
-    ss << "Task:\n";
-    ss << "n: " << _n << "\n";
-    ss << "min: " << _min << "\n";
-    ss << "max: " << _max << "\n";
-    ss << "bin_n: " << _bin_n << "\n";
-    ss << "bin_min: " << _bin_min << "\n";
-    ss << "bin_max: " << _bin_max << "\n";
-    ss << headDataToString();
-    return ss.str();
-  }
-
   std::string resToString() {
     std::stringstream ss;
-    for (SizeType i = 0; i < _bin_n; ++i) {
+    for (SizeType i = 0; i < _info.binN(); ++i) {
       ss << "Bin #" << i << " ["
-         << _bin_maxes[i] - (_bin_max - _bin_min) / _bin_n << ", "
-         << _bin_maxes[i] << "): " << _bin_count[i];
-      if (i != _bin_n - 1) {
+         << _bin_maxes[i] - (_info.binMax() - _info.binMin()) / _info.binN()
+         << ", " << _bin_maxes[i] << "): " << _bin_count[i];
+      if (i != _info.binN() - 1) {
         ss << "\n";
       }
     }
     return ss.str();
   }
 
-  auto n() { return _n; }
-
-  auto min() { return _min; }
-
-  auto max() { return _max; }
-
-  auto binN() { return _bin_n; }
-
-  auto binMin() { return _bin_min; }
-
-  auto binMax() { return _bin_max; }
+  auto& info() { return _info; }
 
   auto& data() { return _data; }
 
@@ -167,15 +228,15 @@ struct BinTask {
   auto& binCount() { return _bin_count; }
 
   auto resetCount() {
-    for (SizeType i = 0; i < _bin_n; ++i) {
+    for (SizeType i = 0; i < _info._n; ++i) {
       _bin_count[i] = 0;
     }
   }
 
   auto generateRandomData() {
     static std::default_random_engine gen;
-    static std::uniform_real_distribution<T> dis(_min, _max);
-    for (SizeType i = 0; i < _n; ++i) {
+    static std::uniform_real_distribution<T> dis(_info.min(), _info.max());
+    for (SizeType i = 0; i < _info.n(); ++i) {
       _data[i] = dis(gen);
     }
   }
@@ -185,55 +246,58 @@ struct BinTask {
     for (int i = 0; i < num_thread; ++i) {
       SizeType start = 0;
       SizeType end = 0;
-      distributeTask(i, num_thread, _n, &start, &end);
+      distributeTask(i, num_thread, _info.n(), &start, &end);
       auto new_data = TArray(end - start);
       for (SizeType j = start; j < end; ++j) {
         new_data[j - start] = _data[j];
       }
-      tasks.emplace_back(end - start, _min, _max, _bin_n, _bin_min, _bin_max,
-                         new_data, _bin_maxes, _bin_count);
+      tasks.emplace_back(
+          BinTaskInfo{end - start, _info.min(), _info.max(), _info.binN(),
+                      _info.binMin(), _info.binMax()},
+          new_data, _bin_maxes, _bin_count);
       tasks.back().resetCount();
     }
 
     return tasks;
   }
 
+  auto generateDataFromInfo(BinTaskInfo info) {
+    _info = info;
+
+    auto n = _info.n();
+    auto bin_n = _info.binN();
+
+    _data = TArray(n);
+    generateRandomData();
+    _bin_maxes = binMaxesFromInfo(_info);
+    _bin_count = SizeTypeArray(bin_n);
+    resetCount();
+  }
+
   static auto createFromInput() {
     BinTask task;
-    SizeType n = 0;
-    T min = 0;
-    T max = 0;
-    SizeType bin_n = 0;
-    T bin_min = 0;
-    T bin_max = 0;
 
-    std::cout << "Input n, min, max, bin_n, bin_min, bin_max:\n";
-    std::cin >> n >> min >> max >> bin_n >> bin_min >> bin_max;
-
-    task._n = n;
-    task._min = min;
-    task._max = max;
-    task._bin_n = bin_n;
-    task._bin_min = bin_min;
-    task._bin_max = bin_max;
-
-    task._data = TArray(n);
-    task._bin_maxes = TArray(bin_n);
-    task._bin_count = SizeTypeArray(bin_n);
-
-    task.generateRandomData();
-
-    auto bin_width = (bin_max - bin_min) / bin_n;
-    for (SizeType i = 0; i < bin_n; ++i) {
-      task._bin_maxes[i] = bin_min + bin_width * (i + 1);
-    }
-    for (std::size_t i = 0; i < bin_n; ++i) {
-      task._bin_count[i] = 0;
-    }
-
+    task.generateDataFromInfo(BinTaskInfo::createFromInput());
     return task;
   }
+
+  static auto binMaxesFromInfo(BinTaskInfo& info) {
+    auto bin_n = info.binN();
+    auto bin_min = info.binMin();
+    auto bin_max = info.binMax();
+
+    auto bin_width = (bin_max - bin_min) / bin_n;
+    auto bin_maxes = TArray(bin_n);
+    for (SizeType i = 0; i < bin_n; ++i) {
+      bin_maxes[i] = bin_min + bin_width * (i + 1);
+    }
+    return bin_maxes;
+  }
 };
+
+void mpiImp(int my_rank, int size, int tag,
+            BinTask<double, std::vector<double>, std::size_t,
+                    std::vector<std::size_t>>& task);
 
 template <typename SizeType, typename SizeTypeArray>
 inline auto sameResult(const SizeTypeArray& l, const SizeTypeArray& r,
