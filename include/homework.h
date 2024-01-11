@@ -89,45 +89,6 @@ inline auto serialImp(const TArray& data, SizeType n, SizeTypeArray&& bin_count,
 template <typename T, typename TArray, typename SizeType,
           typename SizeTypeArray>
 struct BinTask {
-  // BinTask() = default;
-
-  // BinTask(const BinTask& rhs) {
-  //   _info = rhs._info;
-  //   _data = rhs._data;
-  //   _bin_maxes = rhs._bin_maxes;
-  //   _bin_count = rhs._bin_count;
-  // }
-
-  // // BinTask(BinTask&& rhs) noexcept {
-  // //   _info = std::move(rhs._info);
-  // //   _data = std::move(rhs._data);
-  // //   _bin_maxes = std::move(rhs._bin_maxes);
-  // //   _bin_count = std::move(rhs._bin_count);
-  // // }
-
-  // BinTask operator=(const BinTask& rhs) {
-  //   if (this == &rhs) {
-  //     return *this;
-  //   }
-
-  //   _info = rhs._info;
-  //   _data = rhs._data;
-  //   _bin_maxes = rhs._bin_maxes;
-  //   _bin_count = rhs._bin_count;
-  //   return *this;
-  // }
-
-  // BinTask operator=(BinTask&& rhs) noexcept {
-  //   if (this == &rhs) {
-  //     return *this;
-  //   }
-
-  //   _info = std::move(rhs._info);
-  //   _data = std::move(rhs._data);
-  //   _bin_maxes = std::move(rhs._bin_maxes);
-  //   _bin_count = std::move(rhs._bin_count);
-  //   return *this;
-  // }
 
   struct BinTaskInfo {
     SizeType _n{};
@@ -228,8 +189,9 @@ struct BinTask {
   auto& binCount() { return _bin_count; }
 
   auto resetCount() {
-    for (SizeType i = 0; i < _info._n; ++i) {
-      _bin_count[i] = 0;
+    // bug here!!! QAQ
+    for (auto&& c : _bin_count) {
+      c = 0;
     }
   }
 
@@ -276,7 +238,6 @@ struct BinTask {
 
   static auto createFromInput() {
     BinTask task;
-
     task.generateDataFromInfo(BinTaskInfo::createFromInput());
     return task;
   }
@@ -295,9 +256,9 @@ struct BinTask {
   }
 };
 
-void mpiImp(int my_rank, int size, int tag,
-            BinTask<double, std::vector<double>, std::size_t,
-                    std::vector<std::size_t>>& task);
+// void mpiImp(int my_rank, int size, int tag,
+//             BinTask<double, std::vector<double>, std::size_t,
+//                     std::vector<std::size_t>>& task);
 
 template <typename SizeType, typename SizeTypeArray>
 inline auto sameResult(const SizeTypeArray& l, const SizeTypeArray& r,

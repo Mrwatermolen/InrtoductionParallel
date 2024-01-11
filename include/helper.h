@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <utility>
+#include <tuple>
 
 inline int getArgNumThread(int argc, char** argv) {
   if (2 < argc) {

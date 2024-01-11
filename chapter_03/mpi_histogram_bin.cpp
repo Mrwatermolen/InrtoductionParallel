@@ -7,7 +7,6 @@
 int main(int argc, char **argv) {
   int my_rank = 0;
   int size = 1;
-  int tag = 0;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -15,76 +14,63 @@ int main(int argc, char **argv) {
 
   using TaskType = bin::BinTask<double, std::vector<double>, std::size_t,
                                 std::vector<std::size_t>>;
-  TaskType task;
-  TaskType send_task;
 
-  TaskType::BinTaskInfo info;
+  TaskType total_task;
+
+  TaskType local_task;
+  TaskType::BinTaskInfo local_info;
 
   if (my_rank == 0) {
-    send_task = TaskType::createFromInput();
-    // for (auto &&s : send_task.data()) {
-    //   std::cout << s << "\n";
-    // }
-    task = send_task;
-    // info = task.info();
+    total_task = TaskType::createFromInput();
+    local_task = total_task;
+    local_info = local_task.info();
   }
 
-  // MPI_Bcast(&info, sizeof(info), MPI_CHAR, 0, MPI_COMM_WORLD);
-  // std::cout << "1-=======-\n";
-  // task._info = info;
-  // task._bin_maxes = TaskType::binMaxesFromInfo(info);
-  // task._bin_count = std::vector<std::size_t>(info._bin_n);
-  // task.resetCount();
+  MPI_Bcast(&local_info, sizeof(local_info), MPI_CHAR, 0, MPI_COMM_WORLD);
+  local_task.info() = local_info;
+  local_task.binMaxes() = TaskType::binMaxesFromInfo(local_info);
+  local_task.binCount() = std::vector<std::size_t>(local_info._bin_n);
+  local_task.resetCount();
 
-  // std::vector<int> send_counts(size);
-  // for (int i = 0; i < size; ++i) {
-  //   std::size_t start = 0;
-  //   std::size_t end = 0;
-  //   distributeTask(i, size, info.n(), &start, &end);
-  //   send_counts[i] = (end - start) * sizeof(double);
-  // }
-
-  // task.info().n() = send_counts[my_rank] / sizeof(double);
-
-  // task._data = std::vector<double>(task.info().n());
-
-  // std::vector<int> send_displs(size);
-  // send_displs[0] = 0;
-  // for (int i = 1; i < size; ++i) {
-  //   send_displs[i] = send_displs[i - 1] + send_counts[i - 1];
-  // }
-  // // print info
-  // std::cout << ("process " + std::to_string(my_rank) + " send data: " +
-  //               task.info().toString() + "\n");
-
-  // MPI_Scatterv(send_task.data().data(), send_counts.data(), send_displs.data(),
-  //              MPI_CHAR, task.data().data(), send_counts[my_rank], MPI_CHAR, 0,
-  //              MPI_COMM_WORLD);
-
-  // if (my_rank == 0) {
-  //   MPI_Send(send_task.data().data() + send_displs[1], send_counts[1],
-  //   MPI_CHAR,
-  //            1, tag, MPI_COMM_WORLD);
-  //   MPI_Send(send_task.data().data() + send_displs[2], send_counts[2],
-  //   MPI_CHAR,
-  //            2, tag, MPI_COMM_WORLD);
-  // } else {
-  //   MPI_Status status;
-  //   MPI_Recv(task.data().data(), send_counts[my_rank], MPI_CHAR, 0, tag,
-  //            MPI_COMM_WORLD, &status);
-  // }
-
-  std::cout << ("process " + std::to_string(my_rank) + " received data: " +
-                task.info().toString() + "\n" + task.headDataToString() + "\n");
+  std::vector<int> send_counts(size);
+  for (int i = 0; i < size; ++i) {
+    std::size_t start = 0;
+    std::size_t end = 0;
+    distributeTask(i, size, local_info.n(), &start, &end);
+    send_counts[i] = (end - start) * sizeof(double);
+  }
+  local_task.info().n() = send_counts[my_rank] / sizeof(double);
+  local_task.data() = std::vector<double>(local_task.info().n());
+  std::vector<int> send_displs(size);
+  send_displs[0] = 0;
+  for (int i = 1; i < size; ++i) {
+    send_displs[i] = send_displs[i - 1] + send_counts[i - 1];
+  }
+  MPI_Scatterv(total_task.data().data(), send_counts.data(), send_displs.data(),
+               MPI_CHAR, local_task.data().data(), send_counts[my_rank],
+               MPI_CHAR, 0, MPI_COMM_WORLD);
 
   MPI_Barrier(MPI_COMM_WORLD);
-  // bin::mpiImp(my_rank, size, tag, task);
+
+  bin::serialImp(local_task.data(), local_task.info().n(),
+                 local_task.binCount(), local_task.binMaxes(),
+
+                 local_task.info().n(), local_task.info().binMin());
+
+  // int count = total_task.info().binN(); error: count must be the same for all? TODO: is right?
+  int count = local_task.info().binN();
+
+  MPI_Reduce(local_task.binCount().data(), total_task.binCount().data(), count,
+             MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if (my_rank == 0) {
+    std::cout << ("process " + std::to_string(my_rank) +
+                  " received data: " + total_task.info().toString() + "\n" +
+                  total_task.headDataToString() + "\n" +
+                  total_task.resToString() + "\n");
+  }
+
   MPI_Finalize();
   return 0;
 }
 
-namespace bin {
-void mpiImp(int my_rank, int size, int tag,
-            BinTask<double, std::vector<double>, std::size_t,
-                    std::vector<std::size_t>> &task) {}
-};  // namespace bin
