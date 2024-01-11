@@ -1,15 +1,86 @@
-#include <iostream>
 #include <mpi.h>
+
+#include <chrono>
+#include <iostream>
 #include <ostream>
 #include <random>
+#include <string>
 #include <thread>
 
-struct Task {
-  int l;
-  int r;
-};
+#include "helper.h"
+#include "homework.h"
 
-double nextComputeValue() {
+int main(int argc, char *argv[]) { global_sum::mpiRun(); }
+
+namespace global_sum {
+
+void mpiRun() {
+  int my_rank;
+  int size;
+  std::size_t n = 0;
+
+  MPI_Init(nullptr, nullptr);
+  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+  if (my_rank == 0) {
+    n = getInoutOneDimensionProblemSize();
+  }
+  MPI_Bcast(&n, sizeof(n), MPI_CHAR, 0, MPI_COMM_WORLD);
+
+  std::string s = "process " + std::to_string(my_rank) + " ";
+  // local sum
+  std::size_t l = 0;
+  std::size_t r = 0;
+  distributeTask(my_rank, size, n, &l, &r);
+  std::cout << (s + taskToString(l, r) + "\n");
+  auto local_sum = serialSum(l, r);
+  std::cout.precision(5);
+  std::cout << std::fixed;
+  std::cout << (s + "local sum  : " + std::to_string(local_sum) + "\n");
+
+  // MPI_Barrier(MPI_COMM_WORLD);
+  if (my_rank == 0) {
+    std::cout << (s + "start converge\n");
+  }
+  auto tree_sum = local_sum;
+  auto plat_sum = local_sum;
+  auto tree_time = measureTime(mpiTreeSum, my_rank, size, 0, &tree_sum);
+  mpiPlatSum(my_rank, size, 0, &plat_sum);
+
+  if (my_rank == 0) {
+    std::cout << (s + "converge done\n");
+    auto t_ms = std::chrono::duration_cast<std::chrono::milliseconds>(tree_time)
+                    .count();
+    std::cout << (s + "tree time : " + std::to_string(t_ms) + " ms\n");
+    std::cout << (s + "tree sum  : " + std::to_string(tree_sum) + "\n");
+  }
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  MPI_Barrier(MPI_COMM_WORLD);
+  std::cout << (s + "plat sum  : " + std::to_string(plat_sum) + "\n");
+
+  // validate
+  double res = 0;
+  // MPI_Reduce(&local_sum, &res, sizeof(double), MPI_CHAR, MPI_SUM, 0,
+  //  MPI_COMM_WORLD); // error for count is used for vector add?
+  MPI_Reduce(&local_sum, &res, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if (my_rank == 0) {
+    std::cout << (s + "validated : " + std::to_string(res) + "\n");
+  }
+
+  MPI_Finalize();
+}
+
+double computeNextValue() {
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  static std::uniform_real_distribution<> dis(0.0, 1.0);
+  return dis(gen);
+}
+
+double computeNextValueWithRandomSleep() {
   static std::random_device rd;
   static std::mt19937 gen(rd());
   static std::uniform_real_distribution<> dis(0.0, 1.0);
@@ -19,54 +90,89 @@ double nextComputeValue() {
   return dis(gen);
 }
 
-void range(int n, int size, int *l, int *r) {
-  int step = n / size;
-  int remain = n % size;
-  l[0] = 0;
-  r[0] = step;
-  if (remain != 0) {
-    r[0]++;
-    remain--;
-  }
+template <typename T>
+std::string taskToString(T l, T r) {
+  return static_cast<std::string>("[" + std::to_string(l) + ", " +
+                                  std::to_string(r) + ")");
+}
 
-  for (int i = 1; i < size; ++i) {
-    l[i] = r[i - 1];
-    r[i] = l[i] + step;
-    if (remain == 0) {
-      continue;
+void mpiTreeSum(int my_rank, int size, int tag, double *sum) {
+  struct S {
+    void operator()(int dst) {
+      MPI_Send(_sum, sizeof(double), MPI_CHAR, dst, _tag, MPI_COMM_WORLD);
     }
 
-    r[i]++;
-    remain--;
-  }
+    double *_sum;
+    int _tag;
+  };
+
+  struct R {
+    void operator()(int src) {
+      double recv_sum = 0;
+      MPI_Recv(&recv_sum, sizeof(double), MPI_CHAR, src, _tag, MPI_COMM_WORLD,
+               MPI_STATUS_IGNORE);
+      *_sum += recv_sum;
+    }
+
+    double *_sum;
+    int _tag;
+  };
+  treeCommunication(my_rank, size, S{sum, tag}, R{sum, tag});
 }
 
-void masterDispatchTask(int n, int size, Task *master_task) {
-  int *l = new int[size];
-  int *r = new int[size];
-  range(n, size, l, r);
-  master_task->l = l[0];
-  master_task->r = r[0];
-  for (int i = 0; i < size; ++i) {
-    Task task;
-    task.l = l[i];
-    task.r = r[i];
-    MPI_Send(&task, sizeof(Task), MPI_CHAR, i, 0, MPI_COMM_WORLD);
-  }
-  delete[] l;
-  delete[] r;
+void mpiPlatSum(int my_rank, int size, int tag, double *sum) {
+  struct SR {
+    void operator()(int partner) {
+      double recv_sum = 0;
+      MPI_Send(_sum, sizeof(double), MPI_CHAR, partner, _tag, MPI_COMM_WORLD);
+      MPI_Recv(&recv_sum, sizeof(double), MPI_CHAR, partner, _tag,
+               MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      *_sum += recv_sum;
+    }
+
+    double *_sum;
+    int _tag;
+  };
+
+  struct RS {
+    void operator()(int partner) {
+      double recv_sum = 0;
+      MPI_Recv(&recv_sum, sizeof(double), MPI_CHAR, partner, _tag,
+               MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Send(_sum, sizeof(double), MPI_CHAR, partner, _tag, MPI_COMM_WORLD);
+      *_sum += recv_sum;
+    }
+
+    double *_sum;
+    int _tag;
+  };
+
+  struct S {
+    void operator()(int dst) {
+      MPI_Send(_sum, sizeof(double), MPI_CHAR, dst, _tag, MPI_COMM_WORLD);
+    }
+
+    double *_sum;
+    int _tag;
+  };
+
+  struct R {
+    void operator()(int dst) {
+      double recv_sum = 0;
+      MPI_Recv(_sum, sizeof(double), MPI_CHAR, dst, _tag, MPI_COMM_WORLD,
+               MPI_STATUS_IGNORE);
+    }
+
+    double *_sum;
+    int _tag;
+  };
+
+  platCommunication(my_rank, size, SR{sum, tag}, RS{sum, tag}, S{sum, tag},
+                    R{sum, tag});
 }
 
-void workRequestTask(int my_rank, Task *task) {
-  MPI_Status status;
-  MPI_Recv(task, sizeof(Task), MPI_CHAR, 0, 0, MPI_COMM_WORLD,
-           MPI_STATUS_IGNORE);
-  std::cout << "process " << my_rank << " received task: [" << task->l << ", "
-            << task->r << ")\n";
-}
-
-void converge(int my_rank, int size, int divisor, int core_different,
-              double *sum, int tag) {
+void mpiTreeSum01(int my_rank, int size, int divisor, int core_different,
+                  double *sum, int tag) {
   if ((size << 1) < divisor) {
     return;
   }
@@ -83,7 +189,7 @@ void converge(int my_rank, int size, int divisor, int core_different,
   core_different <<= 1;
 
   if (size <= src) {
-    converge(my_rank, size, divisor << 1, core_different, sum, tag);
+    mpiTreeSum01(my_rank, size, divisor << 1, core_different, sum, tag);
     return;
   }
 
@@ -91,146 +197,7 @@ void converge(int my_rank, int size, int divisor, int core_different,
   MPI_Recv(&recv_sum, sizeof(double), MPI_CHAR, src, tag, MPI_COMM_WORLD,
            MPI_STATUS_IGNORE);
   *sum += recv_sum;
-  converge(my_rank, size, divisor << 1, core_different, sum, tag);
+  mpiTreeSum01(my_rank, size, divisor << 1, core_different, sum, tag);
 }
 
-void convergeTree(int my_rank, int size, int stage, double *sum, int tag) {
-  if (size <= stage) {
-    // communication done
-    return;
-  }
-
-  int partner = my_rank ^ stage;
-  if (size <= partner) {
-    // partner which is in this stage doesn't exist.
-    // go to next stage
-    convergeTree(my_rank, size, stage << 1, sum, tag);
-    return;
-  }
-
-  bool right_node = (my_rank & stage) != 0;
-  if (right_node) {
-    // right node send message to left node
-    int dst = partner;
-    MPI_Send(sum, sizeof(double), MPI_CHAR, dst, tag, MPI_COMM_WORLD);
-    // right node exit
-    return;
-  }
-
-  // left node receive message from right node
-  int src = partner;
-  double recv_sum = 0;
-  MPI_Recv(&recv_sum, sizeof(double), MPI_CHAR, src, tag, MPI_COMM_WORLD,
-           MPI_STATUS_IGNORE);
-  *sum += recv_sum;
-  // go to next stage
-  convergeTree(my_rank, size, stage << 1, sum, tag);
-}
-
-void convergePlat(int my_rank, int size, int stage, double *sum, int tag) {
-  if (size <= stage) {
-    return;
-  }
-
-  int partner = my_rank ^ stage;
-  if (size <= partner) {
-    convergePlat(my_rank, size, stage << 1, sum, tag);
-    return;
-  }
-
-  bool send_then_recv = (my_rank & stage) != 0;
-  if (send_then_recv) {
-    int dst = partner;
-    MPI_Send(sum, sizeof(decltype(*sum)), MPI_CHAR, dst, tag, MPI_COMM_WORLD);
-    int src = dst;
-    MPI_Recv(sum, sizeof(decltype(*sum)), MPI_CHAR, src, tag, MPI_COMM_WORLD,
-             MPI_STATUS_IGNORE);
-  } else {
-    int src = partner;
-    double recv_sum;
-    MPI_Recv(&recv_sum, sizeof(decltype(recv_sum)), MPI_CHAR, src, tag,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    *sum += recv_sum;
-    int dst = src;
-    MPI_Send(sum, sizeof(decltype(*sum)), MPI_CHAR, dst, tag, MPI_COMM_WORLD);
-  }
-
-  convergePlat(my_rank, size, stage << 1, sum, tag);
-}
-
-double doSum(int my_rank, int size, Task *task) {
-  double local_sum = 0.0;
-  for (int i = task->l; i < task->r; ++i) {
-    local_sum += nextComputeValue();
-  }
-
-  std::cout.precision(5);
-  std::cout << std::fixed;
-  std::cout << "process " << my_rank << " local sum: " << local_sum << "\n";
-  std::cout << std::flush;
-  MPI_Barrier(MPI_COMM_WORLD);
-  if (my_rank == 0) {
-    std::cout << "process " << my_rank << " start converge\n";
-  }
-
-  auto tree_sum_0 = local_sum;
-  auto tree_sum_1 = local_sum;
-  auto plat_sum = local_sum;
-  converge(my_rank, size, 2, 1, &tree_sum_0, 0);
-  convergeTree(my_rank, size, 1, &tree_sum_1, 0);
-  convergePlat(my_rank, size, 1, &plat_sum, 0);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  if (my_rank == 0) {
-    std::cout << "process " << my_rank << " converge done\n";
-    std::cout << "process " << my_rank << " tree01 sum: " << tree_sum_0 << "\n";
-    std::cout << "process " << my_rank << " tree02 sum: " << tree_sum_1 << "\n";
-    std::cout << std::flush;
-  }
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  MPI_Barrier(MPI_COMM_WORLD);
-  std::cout << "process " << my_rank << " plat sum  : " << plat_sum << "\n";
-
-  return local_sum;
-}
-
-int main(int argc, char *argv[]) {
-  int my_rank;
-  int size;
-  Task task{0, 0};
-
-  MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-  if (my_rank == 0) {
-    if (argc != 2) {
-      std::cout << "Usage: mpirun -n <number of threads> " << argv[0]
-                << " <size>\n";
-      MPI_Abort(MPI_COMM_WORLD, MPI_ERR_ARG);
-    }
-
-    std::cout << "MPI Configuration: " << size << " processes\n";
-    int n = atoi(argv[1]);
-    masterDispatchTask(n, size, &task);
-  } else {
-    workRequestTask(my_rank, &task);
-  }
-  std::cout << std::flush;
-  // for print in order
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  auto local_sum = doSum(my_rank, size, &task);
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  // validate
-  double res = 0;
-  // MPI_Reduce(&local_sum, &res, sizeof(decltype(res)), MPI_CHAR, MPI_SUM, 0,
-  //            MPI_COMM_WORLD); // error for count is used for vector add?
-  MPI_Reduce(&local_sum, &res, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-  if (my_rank == 0) {
-    std::cout << "process " << my_rank << " validate sum: " << res << "\n";
-  }
-
-  MPI_Finalize();
-}
+}  // namespace global_sum

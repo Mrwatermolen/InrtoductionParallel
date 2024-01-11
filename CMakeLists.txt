@@ -17,6 +17,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(MPI REQUIRED)
+find_package(OpenMP REQUIRED)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${MPI_INCLUDE_PATH})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -24,3 +27,4 @@ add_subdirectory(chapter_01)
 add_subdirectory(chapter_02)
 add_subdirectory(chapter_03)
 add_subdirectory(chapter_04)
+add_subdirectory(chapter_05)

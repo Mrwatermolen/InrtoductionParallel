@@ -1,0 +1,4 @@
+add_executable(omp_hello_world omp_hello_world.cpp)
+target_link_libraries(omp_hello_world OpenMP::OpenMP_CXX)
+add_executable(omp_trap_integral omp_trap_integral.cpp)
+target_link_libraries(omp_trap_integral OpenMP::OpenMP_CXX)
