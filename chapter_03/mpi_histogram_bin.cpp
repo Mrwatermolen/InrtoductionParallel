@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 
   if (my_rank == 0) {
     auto f = [&serial_task]() {
-      bin::serialImp(serial_task.data(), serial_task.info().n(),
+      bin::serialImp(serial_task.data(), 0UL, serial_task.info().n(),
                      serial_task.binCount(), serial_task.binMaxes(),
                      serial_task.info().binN(), serial_task.info().binMin());
     };
@@ -133,7 +133,7 @@ void mpiImp(int my_rank, int size,
     std::cout << ss.str();
   }
 
-  bin::serialImp(local_task.data(), local_task.info().n(),
+  bin::serialImp(local_task.data(), 0UL, local_task.info().n(),
                  local_task.binCount(), local_task.binMaxes(),
 
                  local_task.info().binN(), local_task.info().binMin());

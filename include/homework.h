@@ -74,10 +74,10 @@ inline auto findBin(const T& data, const TArray& bin_maxes, SizeType bin_n,
 
 template <typename T, typename TArray, typename SizeType = std::size_t,
           typename SizeTypeArray>
-inline auto serialImp(const TArray& data, SizeType n, SizeTypeArray&& bin_count,
-                      const TArray& bin_maxes, SizeType bin_n,
-                      const T& bin_min) {
-  for (SizeType i = 0; i < n; ++i) {
+inline auto serialImp(const TArray& data, SizeType l, SizeType r,
+                      SizeTypeArray&& bin_count, const TArray& bin_maxes,
+                      SizeType bin_n, const T& bin_min) {
+  for (SizeType i = l; i < r; ++i) {
     auto bin = findBin(data[i], bin_maxes, bin_n, bin_min);
     if (bin == static_cast<SizeType>(-1)) {
       continue;
@@ -259,6 +259,13 @@ void mpiImp(int my_rank, int size,
             BinTask<double, std::vector<double>, std::size_t,
                     std::vector<std::size_t>>& task,
             bool printDataCopyTime = false);
+
+void threadImp(int num_threads,
+               BinTask<double, std::vector<double>, std::size_t,
+                       std::vector<std::size_t>>& task);
+
+void ompImp(int num_threads, BinTask<double, std::vector<double>, std::size_t,
+                                     std::vector<std::size_t>>& task);
 
 template <typename SizeType, typename SizeTypeArray>
 inline auto sameResult(const SizeTypeArray& l, const SizeTypeArray& r,

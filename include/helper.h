@@ -4,8 +4,8 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
-#include <utility>
 #include <tuple>
+#include <utility>
 
 inline int getArgNumThread(int argc, char** argv) {
   if (2 < argc) {
@@ -151,6 +151,22 @@ inline auto mpiConfigureToString(int size) {
   ss << "MPI Configure: ==============================";
   ss << "\n";
   ss << "MPI Size: " << size;
+  return ss.str();
+}
+
+inline auto threadConfigureToString(int num_threads) {
+  std::stringstream ss;
+  ss << "Thread Configure: ==============================";
+  ss << "\n";
+  ss << "Thread Num: " << num_threads;
+  return ss.str();
+}
+
+inline auto ompConfigureToString(int num_threads) {
+  std::stringstream ss;
+  ss << "OpenMP Configure: ==============================";
+  ss << "\n";
+  ss << "OpenMP Num: " << num_threads;
   return ss.str();
 }
 
