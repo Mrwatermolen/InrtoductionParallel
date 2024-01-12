@@ -3,6 +3,8 @@
 
 #include <chrono>
 #include <iostream>
+#include <sstream>
+#include <tuple>
 #include <utility>
 
 inline int getArgNumThread(int argc, char** argv) {
@@ -142,6 +144,30 @@ template <typename T, typename N>
 inline auto efficiency(T speed_up, N num_threads)
     -> decltype(speed_up / num_threads) {
   return speed_up / num_threads;
+}
+
+inline auto mpiConfigureToString(int size) {
+  std::stringstream ss;
+  ss << "MPI Configure: ==============================";
+  ss << "\n";
+  ss << "MPI Size: " << size;
+  return ss.str();
+}
+
+inline auto threadConfigureToString(int num_threads) {
+  std::stringstream ss;
+  ss << "Thread Configure: ==============================";
+  ss << "\n";
+  ss << "Thread Num: " << num_threads;
+  return ss.str();
+}
+
+inline auto ompConfigureToString(int num_threads) {
+  std::stringstream ss;
+  ss << "OpenMP Configure: ==============================";
+  ss << "\n";
+  ss << "OpenMP Num: " << num_threads;
+  return ss.str();
 }
 
 #endif  // __PROJECT_NAME_HELPER_H__

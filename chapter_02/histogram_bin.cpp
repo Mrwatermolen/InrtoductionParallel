@@ -14,11 +14,12 @@ int main(int argc, char** argv) {
   auto&& task = bin::BinTask<double, std::vector<double>, std::size_t,
                              std::vector<std::size_t>>::createFromInput();
 
-  std::cout << task.taskToString() << "\n";
+  std::cout << task.info().toString() << "\n";
 
   auto f = [&]() {
-    bin::serialImp(task.data().data(), task.n(), task.binCount().data(),
-                   task.binMaxes().data(), task.binN(), task.binMin());
+    bin::serialImp(task.data().data(), 0UL, task.info().n(),
+                   task.binCount().data(), task.binMaxes().data(),
+                   task.info().binN(), task.info().binMin());
   };
 
   // auto serial_time =
