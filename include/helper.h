@@ -149,9 +149,8 @@ inline auto efficiency(T speed_up, N num_threads)
 inline auto mpiConfigureToString(int size) {
   std::stringstream ss;
   ss << "MPI Configure: ==============================";
-  ss << "n";
-  ss << "MPI Size: " << size << "\n";
-  ss << "CPI COnfigure: ==============================";
+  ss << "\n";
+  ss << "MPI Size: " << size;
   return ss.str();
 }
 

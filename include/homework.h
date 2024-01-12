@@ -51,8 +51,8 @@ namespace bin {
 
 template <typename T, typename TArray, typename SizeType>
 inline auto findBin(const T& data, const TArray& bin_maxes, SizeType bin_n,
-                    const T& min_meas) {
-  if (data < min_meas || bin_maxes[bin_n - 1] <= data) {
+                    const T& bin_min) {
+  if (data < bin_min || bin_maxes[bin_n - 1] <= data) {
     return static_cast<SizeType>(-1);
   }
 
@@ -76,9 +76,9 @@ template <typename T, typename TArray, typename SizeType = std::size_t,
           typename SizeTypeArray>
 inline auto serialImp(const TArray& data, SizeType n, SizeTypeArray&& bin_count,
                       const TArray& bin_maxes, SizeType bin_n,
-                      const T& min_meas) {
+                      const T& bin_min) {
   for (SizeType i = 0; i < n; ++i) {
-    auto bin = findBin(data[i], bin_maxes, bin_n, min_meas);
+    auto bin = findBin(data[i], bin_maxes, bin_n, bin_min);
     if (bin == static_cast<SizeType>(-1)) {
       continue;
     }
@@ -89,7 +89,6 @@ inline auto serialImp(const TArray& data, SizeType n, SizeTypeArray&& bin_count,
 template <typename T, typename TArray, typename SizeType,
           typename SizeTypeArray>
 struct BinTask {
-
   struct BinTaskInfo {
     SizeType _n{};
     T _min{};
@@ -169,14 +168,14 @@ struct BinTask {
 
   std::string resToString() {
     std::stringstream ss;
+    SizeType sum = 0;
     for (SizeType i = 0; i < _info.binN(); ++i) {
+      sum += _bin_count[i];
       ss << "Bin #" << i << " ["
          << _bin_maxes[i] - (_info.binMax() - _info.binMin()) / _info.binN()
-         << ", " << _bin_maxes[i] << "): " << _bin_count[i];
-      if (i != _info.binN() - 1) {
-        ss << "\n";
-      }
+         << ", " << _bin_maxes[i] << "): " << _bin_count[i] << "\n";
     }
+    ss << "Total number in bin: " << sum;
     return ss.str();
   }
 
@@ -256,9 +255,10 @@ struct BinTask {
   }
 };
 
-// void mpiImp(int my_rank, int size, int tag,
-//             BinTask<double, std::vector<double>, std::size_t,
-//                     std::vector<std::size_t>>& task);
+void mpiImp(int my_rank, int size,
+            BinTask<double, std::vector<double>, std::size_t,
+                    std::vector<std::size_t>>& task,
+            bool printDataCopyTime = false);
 
 template <typename SizeType, typename SizeTypeArray>
 inline auto sameResult(const SizeTypeArray& l, const SizeTypeArray& r,
