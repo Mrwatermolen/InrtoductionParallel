@@ -2,8 +2,10 @@
 #define __PROJECT_NAME_HELPER_H__
 
 #include <chrono>
+#include <functional>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <tuple>
 #include <utility>
 
@@ -145,6 +147,60 @@ inline auto efficiency(T speed_up, N num_threads)
     -> decltype(speed_up / num_threads) {
   return speed_up / num_threads;
 }
+
+template <typename Func>
+struct ExecutionProfile {
+  using TimeDuration = decltype(std::chrono::high_resolution_clock::now() -
+                                std::chrono::high_resolution_clock::now());
+
+  template <typename... Args>
+  explicit ExecutionProfile(Func& func, Args&&... args)
+      : _func(
+            std::bind(std::forward<Func>(func), std::forward<Args>(args)...)) {}
+
+  std::function<Func> _func;
+  TimeDuration _duration{};
+
+  auto duration() const { return _duration; }
+
+  template <typename... Args>
+  auto execute(Args&&... args) {
+    auto res = measureTime(_func, std::forward<Args>(args)...);
+    if constexpr (std::is_same_v<TimeDuration, decltype(res)>) {
+      _duration = res;
+    } else {
+      _duration = std::get<0>(res);
+      return std::get<1>(res);
+    }
+  }
+
+  template <typename StringStream = std::stringstream,
+            typename DurationCastType = std::chrono::milliseconds>
+  std::string toString(StringStream&& ss = {}) const {
+    auto time_ms = std::chrono::duration_cast<DurationCastType>(_duration);
+    ss << "Elapsed Time: " << time_ms.count();
+
+    if constexpr (std::is_same_v<DurationCastType, std::chrono::milliseconds>) {
+      ss << " ms";
+    } else if constexpr (std::is_same_v<DurationCastType,
+                                        std::chrono::microseconds>) {
+      ss << " us";
+    } else if constexpr (std::is_same_v<DurationCastType,
+                                        std::chrono::nanoseconds>) {
+      ss << " ns";
+    } else if constexpr (std::is_same_v<DurationCastType,
+                                        std::chrono::seconds>) {
+      ss << " s";
+    } else if constexpr (std::is_same_v<DurationCastType,
+                                        std::chrono::minutes>) {
+      ss << " min";
+    } else if constexpr (std::is_same_v<DurationCastType, std::chrono::hours>) {
+      ss << " h";
+    }
+
+    return ss.str();
+  }
+};
 
 inline auto mpiConfigureToString(int size) {
   std::stringstream ss;

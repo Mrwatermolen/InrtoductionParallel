@@ -1,6 +1,8 @@
 #ifndef __PROJECT_NAME_HOMEWORK_H__
 #define __PROJECT_NAME_HOMEWORK_H__
 
+#include <chrono>
+#include <cmath>
 #include <cstddef>
 #include <iostream>
 #include <random>
@@ -279,5 +281,106 @@ inline auto sameResult(const SizeTypeArray& l, const SizeTypeArray& r,
 }
 
 }  // namespace bin
+
+namespace trap_integral {
+
+template <typename T>
+struct TrapIntegralTask {
+  T _l{};
+  T _r{};
+  std::size_t _n{};
+
+  auto& l() { return _l; }
+
+  auto& r() { return _r; }
+
+  auto& n() { return _n; }
+
+  const auto& l() const { return _l; }
+
+  const auto& r() const { return _r; }
+
+  const auto& n() const { return _n; }
+
+  std::string toString() const {
+    std::stringstream ss;
+    ss << "Task: "
+       << "sample points: " << _n << " domain: [" << _l << ", " << _r << ")";
+    return ss.str();
+  }
+
+  std::size_t bytes() const { return sizeof(*this); }
+
+  static auto createFromInput() {
+    T l{};
+    T r{};
+
+    auto n = getInoutOneDimensionProblemSize();
+    std::cout << "Input l, r:\n";
+    std::cin >> l >> r;
+
+    return TrapIntegralTask{l, r, n};
+  }
+};
+
+template <typename TimeDuration, typename T>
+struct TrapIntegralResult {
+  T _res{};
+
+  auto& res() { return _res; }
+
+  const auto& res() const { return _res; }
+
+  std::string toString(int precision = 6) const {
+    std::stringstream ss;
+    ss.precision(precision);
+    ss << std::fixed;
+
+    ss << "Value: " << _res;
+
+    return ss.str();
+  }
+
+  inline static T epsilon = 1e-6;
+  static auto sameResult(const TrapIntegralResult& l,
+                         const TrapIntegralResult& r) {
+    return l._res == r._res || std::abs(l._res - r._res) < epsilon;
+  }
+};
+
+template <typename T>
+inline auto givenFunc(const T& x)
+    -> decltype(std::sin(x) * std::cos(x) * std::exp(-x)) {
+  return std::sin(x) * std::cos(x) * std::exp(-x);
+}
+
+template <typename T>
+inline auto givenFuncDerivative(const T& x)
+    -> decltype(-std::exp(-x) * (0.5 * std::sin(2 * x) + std::cos(2 * x))) {
+  return std::exp(-x) * (-0.5 * std::sin(2 * x) + std::cos(2 * x));
+}
+
+template <typename T, typename SizeType, typename Func>
+inline auto serialImp(const T& l, const T& r, SizeType n, Func&& f) {
+  auto h = (r - l) / n;
+  auto sum = (f(l) + f(r)) / 2;
+  for (int i = 1; i < n; ++i) {
+    sum += f(l + i * h);
+  }
+  return sum * h;
+}
+
+using TrapIntegralDataTypeImp = double;
+using TrapIntegralTaskImp = TrapIntegralTask<TrapIntegralDataTypeImp>;
+using TrapIntegralResultImp =
+    TrapIntegralResult<std::chrono::high_resolution_clock::duration,
+                       TrapIntegralDataTypeImp>;
+
+TrapIntegralDataTypeImp mpiImp(int my_rank, int size, TrapIntegralTaskImp& task,
+                             bool printDataCopyTime = false);
+
+TrapIntegralDataTypeImp threadImp(int num_threads, TrapIntegralTaskImp& task);
+
+}  // namespace trap_integral
 
 #endif  // __PROJECT_NAME_HOMEWORK_H__
