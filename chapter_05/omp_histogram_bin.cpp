@@ -1,5 +1,6 @@
 #include <omp.h>
 
+#include <functional>
 #include <iostream>
 
 #include "helper.h"
@@ -83,6 +84,6 @@ void ompImp(int num_threads, BinTask<double, std::vector<double>, std::size_t,
     ++bin_count[bin_index];
   }
 
-}  // namespace bin
+} // namespace bin
 
-}  // namespace bin
+} // namespace bin

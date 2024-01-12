@@ -1,6 +1,7 @@
 #include <mpi.h>
 
 #include <chrono>
+#include <functional>
 #include <vector>
 
 #include "helper.h"
@@ -27,7 +28,7 @@ int main(int argc, char** argv) {
     serial_task = total_task;
   }
 
-  auto&& mpi_time =
+  auto &&mpi_time =
       measureTime(bin::mpiImp, my_rank, size, std::ref(total_task), true);
 
   if (my_rank == 0) {
@@ -47,7 +48,7 @@ int main(int argc, char** argv) {
                      serial_task.binCount(), serial_task.binMaxes(),
                      serial_task.info().binN(), serial_task.info().binMin());
     };
-    auto&& serial_time = measureTime(f);
+    auto &&serial_time = measureTime(f);
     std::cout << "Serial Result: ==============================\n";
     std::cout << "Serial Elapsed Time: "
               << std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -79,7 +80,7 @@ namespace bin {
 
 void mpiImp(int my_rank, int size,
             BinTask<double, std::vector<double>, std::size_t,
-                    std::vector<std::size_t>>& total_task,
+                    std::vector<std::size_t>> &total_task,
             bool printDataCopyTime) {
   using TaskType = bin::BinTask<double, std::vector<double>, std::size_t,
                                 std::vector<std::size_t>>;
@@ -146,4 +147,4 @@ void mpiImp(int my_rank, int size,
              MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
 }
 
-}  // namespace bin
+} // namespace bin
