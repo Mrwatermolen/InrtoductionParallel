@@ -381,6 +381,8 @@ TrapIntegralDataTypeImp mpiImp(int my_rank, int size, TrapIntegralTaskImp& task,
 
 TrapIntegralDataTypeImp threadImp(int num_threads, const TrapIntegralTaskImp& task);
 
+TrapIntegralDataTypeImp ompImp(int num_threads, const TrapIntegralTaskImp& task);
+
 }  // namespace trap_integral
 
 #endif  // __PROJECT_NAME_HOMEWORK_H__

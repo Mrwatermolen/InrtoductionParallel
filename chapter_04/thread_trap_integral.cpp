@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
   using TaskType = trap_integral::TrapIntegralTaskImp;
   using ResultType = trap_integral::TrapIntegralResultImp;
 
-  auto input_task = trap_integral::TrapIntegralTask<double>::createFromInput();
+  auto input_task = TaskType::createFromInput();
   auto thread_task = input_task;
   auto serial_task = input_task;
 
@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
                       serial_task.l(), serial_task.r(), serial_task.n(),
                       trap_integral::givenFuncDerivative<const double &>)};
 
+  std::cout << ("Result: ==============================\n");
   std::cout << ("Thread Result: " + thread_res.toString() + "\n");
   std::cout << ("Serial Result: " + serial_res.toString() + "\n");
 

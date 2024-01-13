@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
     input_task = TaskType::createFromInput();
     serial_task = input_task;
     mpi_task = input_task;
+    std::cout << "Task Info: ==============================\n";
     std::cout << (input_task.toString() + "\n");
   }
 
@@ -42,6 +43,7 @@ int main(int argc, char *argv[]) {
                                          std::ref(mpi_task), false)};
 
   if (my_rank == 0) {
+    std::cout << ("Result: ==============================\n");
     std::cout << ("MPI Result: " + mpi_res.toString() + "\n");
 
     auto serial_res = ResultType{
