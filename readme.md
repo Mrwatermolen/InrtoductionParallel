@@ -2,7 +2,14 @@
 
 ## Just Note
 
-build in `Release` mode
+build in `Release`
+
+run platform:
+1. MacBook Pro (13-inch, M1, 2020)
+2. PC: 
+    - CPU: AMD Ryzen 5 5600X 6-Core @ 12x 3.7GH
+    - RAM: 2x 8GiB DIMM DDR4 Synchronous Unbuffered (Unregistered) 3600 MHz (0.3 ns)
+    - OS: Ubuntu 22.04
 
 ### 1. Histogram Bin Test
 
@@ -23,6 +30,8 @@ bin_n: 7
 bin_min: 6
 bin_max: 9
 ```
+
+#### MacBook
 
 MPI Result:
 
@@ -63,23 +72,34 @@ min: -10
 max: 10
 ```
 
+#### PC
+
+MPI command: `mpirun --use-hwthread-cpus  ./build/bin/mpi_trap_integral`
+
+C++ Standard Thread command: `./build/bin/thread_trap_integral 12`
+
+OMP command: `./build/bin/omp_trap_integral 12`
+
 MPI Result:
 
 command: `mpirun -n 8 ./build/bin/mpi_trap_integral`
 
-- MPI Task Data Copy Time: 0 ms
-- MPI Elapsed Time: 360 ms
-- Serial Elapsed Time: 2108 ms
-- Speed up: 5.85456
-- Efficiency: 0.731819
+- Serial: Elapsed Time: 4605 ms
+- Parallel: Elapsed Time: 695 ms
+- Speed up: 6.62067
+- Efficiency: 0.551722
 
 OMP Result:
 
+- Serial: Elapsed Time: 4341 ms
+- Parallel: Elapsed Time: 636 ms
+- Speed up: 6.82323
+- Efficiency: 0.568602
+
 C++ Thread Result:
 
-command: `./build/bin/thread_trap_integral 8`
+- Serial: Elapsed Time: 4389 ms
+- Parallel: Elapsed Time: 631 ms
+- Speed up: 6.94838
+- Efficiency: 0.579031
 
-- Thread Elapsed Time: 594 ms
-- Serial Elapsed Time: 2025 ms
-- Speed up: 3.40777
-- Efficiency: 0.425972
