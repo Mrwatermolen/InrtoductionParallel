@@ -1,131 +1,118 @@
-#include <iostream>
 #include <mpi.h>
+
+#include <chrono>
+#include <cstddef>
+#include <iostream>
 #include <string>
 
-struct Task {
-  double l;
-  double r;
-  int n;
-
-  std::string toString() {
-    return "Task: l: " + std::to_string(l) + " r: " + std::to_string(r) +
-           " n: " + std::to_string(n);
-  }
-};
-
-void serialImp(double l, double r, int n, double (*f)(double));
-
-void simpleImp(int my_rank, int size, Task *task, double (*f)(double));
-
-void reduceImp(int my_rank, int size, Task *task, double (*f)(double));
-
-void allReduceImp(int my_rank, int size, Task *task, double (*f)(double));
-
-double trap(double l, double r, int n, double (*f)(double));
-
-double func(double x) { return x * x; }
+#include "helper.h"
+#include "homework.h"
 
 int main(int argc, char *argv[]) {
-  int my_rank;
-  int size;
+  int my_rank = 0;
+  int size = 1;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  double a;
-  double b;
-  int n;
-  Task task{0, 0, 0};
+  using DataType = trap_integral::TrapIntegralDataTypeImp;
+  using TaskType = trap_integral::TrapIntegralTaskImp;
+  using ResultType = trap_integral::TrapIntegralResultImp;
+
+  TaskType input_task;
+
+  TaskType serial_task;
+  TaskType mpi_task;
+  ResultType mpi_res;
 
   if (my_rank == 0) {
-    std::cout << "Enter a, b, and n\n";
-    std::cin >> a >> b >> n;
-    auto h = (b - a) / n;
-    int strip = n / size;
-    int temp = strip + n % size;
-    task = Task{a, a + h * temp, temp};
-    double l = a + h * temp;
-    double r = 0;
-    for (int i = 1; i < size; ++i) {
-      r = l + h * strip;
-      auto task = Task{l, r, strip};
-      l = r;
-      MPI_Send(&task, sizeof(task), MPI_CHAR, i, 0, MPI_COMM_WORLD);
-    }
-
-    serialImp(a, b, n, func);
-  } else {
-    MPI_Recv(&task, sizeof(task), MPI_CHAR, 0, 0, MPI_COMM_WORLD,
-             MPI_STATUS_IGNORE);
-    std::cout << "process " << my_rank << " received task: " << task.toString()
-              << "\n";
+    std::cout << (mpiConfigureToString(size) + "\n");
   }
 
-  simpleImp(my_rank, size, &task, func);
-  reduceImp(my_rank, size, &task, func);
-  allReduceImp(my_rank, size, &task, func);
+  if (my_rank == 0) {
+    input_task = TaskType::createFromInput();
+    serial_task = input_task;
+    mpi_task = input_task;
+    std::cout << "Task Info: ==============================\n";
+    std::cout << (input_task.toString() + "\n");
+  }
+
+  auto p = PerformanceCompare{size};
+  mpi_res = ResultType{p.executeParallel(trap_integral::mpiImp, my_rank, size,
+                                         std::ref(mpi_task), false)};
+
+  if (my_rank == 0) {
+    std::cout << ("Result: ==============================\n");
+    std::cout << ("MPI Result: " + mpi_res.toString() + "\n");
+
+    auto serial_res = ResultType{
+        p.executeSerial(trap_integral::serialImp<DataType, std::size_t,
+                                                 DataType(const DataType &)>,
+                        serial_task.l(), serial_task.r(), serial_task.n(),
+                        trap_integral::givenFuncDerivative<const double &>)};
+
+    std::cout << ("Serial Result: " + serial_res.toString() + "\n");
+
+    auto exact_res = ResultType{trap_integral::givenFunc(input_task.r()) -
+                                trap_integral::givenFunc(input_task.l())};
+
+    std::cout << ("Exact Result: " + exact_res.toString() + "\n");
+
+    std::cout << ("Verify MPI Result: ==============================\n");
+    std::cout << ("Same: ") << std::boolalpha
+              << (ResultType::sameResult(mpi_res, exact_res)) << "\n";
+
+    std::cout << ("Performance: ==============================\n");
+    std::cout << (p.toString() + "\n");
+  };
 
   MPI_Finalize();
 }
 
-void serialImp(double l, double r, int n, double (*f)(double)) {
-  auto sum = trap(l, r, n, f);
-  std::cout << "sum: " << sum << "\n";
-}
+namespace trap_integral {
 
-void simpleImp(int my_rank, int size, Task *task, double (*f)(double)) {
-  double local_sum = trap(task->l, task->r, task->n, f);
+TrapIntegralDataTypeImp mpiImp(int my_rank, int size, TrapIntegralTaskImp &task,
+                               bool printDataCopyTime) {
+  using DataType = TrapIntegralDataTypeImp;
+  using TaskType = TrapIntegralTaskImp;
 
-  if (my_rank == 0) {
-    double total_sum = 0;
-    total_sum += local_sum;
-    for (int i = 1; i < size; ++i) {
-      double recv_sum = 0;
-      MPI_Recv(&recv_sum, sizeof(recv_sum), MPI_CHAR, i, 0, MPI_COMM_WORLD,
-               MPI_STATUS_IGNORE);
-      total_sum += recv_sum;
-    }
+  std::chrono::high_resolution_clock::time_point start;
+  std::chrono::high_resolution_clock::time_point end;
 
-    std::cout << "process " << my_rank << " sum: " << total_sum << "\n";
-    return;
+  start = std::chrono::high_resolution_clock::now();
+
+  DataType total_res{};
+  DataType local_res{};
+
+  MPI_Bcast(&task, task.bytes(), MPI_CHAR, 0, MPI_COMM_WORLD);
+
+  if (my_rank == 0 && printDataCopyTime) {
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << "MPI Task Data Copy Time: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end -
+                                                                       start)
+                     .count()
+              << " ms\n";
   }
 
-  MPI_Send(&local_sum, sizeof(local_sum), MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+  auto h = (task.r() - task.l()) / task.n();
+  std::size_t l = 0;
+  std::size_t r = 0;
+  distributeTask(my_rank, size, task.n(), &l, &r);
+  auto local_task = TaskType{task.l() + l * h, task.l() + r * h, r - l};
+
+  auto f = [&]() {
+    return serialImp(
+        local_task.l(), local_task.r(), local_task.n(),
+        [](DataType x) { return trap_integral::givenFuncDerivative(x); });
+  };
+
+  local_res = f();
+
+  MPI_Reduce(&local_res, &total_res, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  return total_res;
 }
 
-void reduceImp(int my_rank, int size, Task *task, double (*f)(double)) {
-  double local_sum = trap(task->l, task->r, task->n, f);
-
-  double total_sum = 0;
-
-  MPI_Reduce(&local_sum, &total_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-
-  if (my_rank == 0) {
-    std::cout << "process " << my_rank << " sum: " << total_sum << "\n";
-  }
-}
-
-void allReduceImp(int my_rank, int size, Task *task, double (*f)(double)) {
-  double local_sum = trap(task->l, task->r, task->n, f);
-
-  double total_sum = 0;
-
-  MPI_Allreduce(&local_sum, &total_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-  if (my_rank == 1) {
-    std::cout << "process " << my_rank << " sum: " << total_sum << "\n";
-  }
-}
-
-double trap(double l, double r, int n, double (*f)(double)) {
-  auto h = (r - l) / n;
-  r = l + h * n;
-  double sum = 0;
-  sum += (f(l) + f(r)) / 2.0;
-  for (int i = 1; i < n; ++i) {
-    sum += f(l + i * h);
-  }
-  sum = sum * h;
-  return sum;
-}
+}  // namespace trap_integral
