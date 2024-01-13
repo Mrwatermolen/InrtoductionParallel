@@ -13,25 +13,13 @@ int main(int argc, char **argv) {
 
   std::cout << task.toString() << "\n";
 
-  // try to use const&T rather than &&T:
-  // no
-  // see more:
-  // https://stackoverflow.com/questions/60325515/no-overload-of-max-matching-stdfunctionconst-int-const-int-const-int
-  // double (*func)(double) = [](double x) {
-  //   return trap_integral::givenFuncDerivative(x);
-  // };
-  // auto p =
-  //     ExecutionProfile{trap_integral::serialImp<double &, std::size_t,
-  //                                               double(double)>,
-  //                      std::placeholders::_1, std::placeholders::_2,
-  //                      std::placeholders::_3, std::placeholders::_4};
+  // try to test performance of std::function
   auto func = [](double x) { return trap_integral::givenFuncDerivative(x); };
-  auto p =
-      ExecutionProfile{trap_integral::serialImp<double &, std::size_t,
-                                                std::function<double(double)>>,
-                       std::placeholders::_1, std::placeholders::_2,
-                       std::placeholders::_3, std::placeholders::_4};
-  auto serial_res = ResultType{p.execute(task.l(), task.r(), task.n(), func)};
+  auto p = ExecutionProfile{};
+  auto serial_res = ResultType{
+      p.execute(trap_integral::serialImp<double &, std::size_t,
+                                         std::function<double(double)>>,
+                task.l(), task.r(), task.n(), func)};
   std::cout << "Serial Result:\n";
   std::cout << p.toString() << "\n";
   std::cout << serial_res.toString() << "\n";

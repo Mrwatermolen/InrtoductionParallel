@@ -74,3 +74,12 @@ command: `mpirun -n 8 ./build/bin/mpi_trap_integral`
 - Efficiency: 0.731819
 
 OMP Result:
+
+C++ Thread Result:
+
+command: `./build/bin/thread_trap_integral 8`
+
+- Thread Elapsed Time: 594 ms
+- Serial Elapsed Time: 2025 ms
+- Speed up: 3.40777
+- Efficiency: 0.425972

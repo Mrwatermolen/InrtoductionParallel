@@ -34,77 +34,36 @@ int main(int argc, char *argv[]) {
     input_task = TaskType::createFromInput();
     serial_task = input_task;
     mpi_task = input_task;
+    std::cout << (input_task.toString() + "\n");
   }
 
-  auto mpi_profile = ExecutionProfile{
-      trap_integral::mpiImp, std::placeholders::_1, std::placeholders::_2,
-      std::placeholders::_3, std::placeholders::_4};
-  mpi_res =
-      ResultType{mpi_profile.execute(my_rank, size, std::ref(mpi_task), true)};
+  auto p = PerformanceCompare{size};
+  mpi_res = ResultType{p.executeParallel(trap_integral::mpiImp, my_rank, size,
+                                         std::ref(mpi_task), false)};
 
   if (my_rank == 0) {
-    std::cout << ("MPI Result: ==============================\n");
-    std::cout << (mpi_profile.toString() + "\n");
-    std::cout << (mpi_res.toString() + "\n");
+    std::cout << ("MPI Result: " + mpi_res.toString() + "\n");
 
-    auto serial_func = [&]() {
-      return trap_integral::serialImp(
-          serial_task.l(), serial_task.r(), serial_task.n(),
-          [](DataType x) { return trap_integral::givenFuncDerivative(x); });
-    };
+    auto serial_res = ResultType{
+        p.executeSerial(trap_integral::serialImp<DataType, std::size_t,
+                                                 DataType(const DataType &)>,
+                        serial_task.l(), serial_task.r(), serial_task.n(),
+                        trap_integral::givenFuncDerivative<const double &>)};
 
-    auto serial_profile = ExecutionProfile{
-        trap_integral::serialImp<DataType, std::size_t,
-                                 std::function<DataType(DataType)>>,
-        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-        std::placeholders::_4};
-    auto serial_res = ResultType{serial_profile.execute(
-        serial_task.l(), serial_task.r(), serial_task.n(),
-        trap_integral::givenFuncDerivative<double>)};
-
-    std::cout << ("Serial Result: ==============================\n");
-    std::cout << (serial_profile.toString() + "\n");
-    std::cout << (serial_res.toString() + "\n");
+    std::cout << ("Serial Result: " + serial_res.toString() + "\n");
 
     auto exact_res = ResultType{trap_integral::givenFunc(input_task.r()) -
                                 trap_integral::givenFunc(input_task.l())};
 
-    std::cout << ("Exact Result: ==============================\n");
-    std::cout << (exact_res.toString() + "\n");
+    std::cout << ("Exact Result: " + exact_res.toString() + "\n");
 
     std::cout << ("Verify MPI Result: ==============================\n");
     std::cout << ("Same: ") << std::boolalpha
               << (ResultType::sameResult(mpi_res, exact_res)) << "\n";
 
     std::cout << ("Performance: ==============================\n");
-    auto s = speedUp(std::chrono::duration<double>(serial_profile.duration()),
-                     std::chrono::duration<double>(mpi_profile.duration()));
-    std::cout << ("Speed up: ") << s << "\n";
-    auto e = efficiency(s, size);
-    std::cout << ("Efficiency: ") << e << "\n";
+    std::cout << (p.toString() + "\n");
   };
-
-  // auto [t0, r0] = measureTime(exact_f);
-  // auto exact_res = ResultType{t0, r0};
-  // std::cout << ("Exact Result: ==============================\n");
-  // std::cout << (exact_res.toString() + "\n");
-
-  // auto [t1, r1] = measureTime(serial_f);
-  // auto serial_res = ResultType{t1, r1};
-
-  // std::cout << ("Serial Result: ==============================\n");
-  // std::cout << (serial_res.toString() + "\n");
-
-  // std::cout << ("Verify MPI Result: ==============================\n");
-  // std::cout << ("Same: ") << std::boolalpha
-  //           << (ResultType::sameResult(mpi_res, exact_res)) << "\n";
-
-  // std::cout << ("Performance: ==============================\n");
-  // auto s = speedUp(std::chrono::duration<double>(serial_res.time()),
-  //                  std::chrono::duration<double>(mpi_res.time()));
-  // std::cout << ("Speed up: ") << s << "\n";
-  // auto e = efficiency(s, size);
-  // std::cout << ("Efficiency: ") << e << "\n";
 
   MPI_Finalize();
 }

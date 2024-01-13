@@ -379,7 +379,7 @@ using TrapIntegralResultImp =
 TrapIntegralDataTypeImp mpiImp(int my_rank, int size, TrapIntegralTaskImp& task,
                              bool printDataCopyTime = false);
 
-TrapIntegralDataTypeImp threadImp(int num_threads, TrapIntegralTaskImp& task);
+TrapIntegralDataTypeImp threadImp(int num_threads, const TrapIntegralTaskImp& task);
 
 }  // namespace trap_integral
 

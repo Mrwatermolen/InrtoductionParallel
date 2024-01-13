@@ -148,24 +148,18 @@ inline auto efficiency(T speed_up, N num_threads)
   return speed_up / num_threads;
 }
 
-template <typename Func>
 struct ExecutionProfile {
   using TimeDuration = decltype(std::chrono::high_resolution_clock::now() -
                                 std::chrono::high_resolution_clock::now());
 
-  template <typename... Args>
-  explicit ExecutionProfile(Func& func, Args&&... args)
-      : _func(
-            std::bind(std::forward<Func>(func), std::forward<Args>(args)...)) {}
-
-  std::function<Func> _func;
   TimeDuration _duration{};
 
   auto duration() const { return _duration; }
 
-  template <typename... Args>
-  auto execute(Args&&... args) {
-    auto res = measureTime(_func, std::forward<Args>(args)...);
+  template <typename Func, typename... Args>
+  auto execute(Func&& func, Args&&... args) {
+    auto res =
+        measureTime(std::forward<Func>(func), std::forward<Args>(args)...);
     if constexpr (std::is_same_v<TimeDuration, decltype(res)>) {
       _duration = res;
     } else {
@@ -202,11 +196,46 @@ struct ExecutionProfile {
   }
 };
 
+struct PerformanceCompare {
+  int _num_threads;
+  ExecutionProfile _serial{};
+  ExecutionProfile _parallel{};
+
+  template <typename Func, typename... Args>
+  auto executeSerial(Func&& func, Args&&... args) {
+    return _serial.execute(std::forward<Func>(func),
+                           std::forward<Args>(args)...);
+  }
+
+  template <typename Func, typename... Args>
+  auto executeParallel(Func&& func, Args&&... args) {
+    return _parallel.execute(std::forward<Func>(func),
+                             std::forward<Args>(args)...);
+  }
+
+  auto speedUp() const {
+    return ::speedUp(std::chrono::duration<double>(_serial.duration()),
+                     std::chrono::duration<double>(_parallel.duration()));
+  }
+
+  auto efficiency() const { return ::efficiency(speedUp(), _num_threads); }
+
+  template <typename StringStream = std::stringstream>
+  std::string toString(StringStream&& ss = {}) const {
+    ss << "Serial: " << _serial.toString() << "\n";
+    ss << "Parallel: " << _parallel.toString() << "\n";
+    ss << "Speed up: " << speedUp() << "\n";
+    ss << "Efficiency: " << efficiency();
+    return ss.str();
+  }
+};
+
 inline auto mpiConfigureToString(int size) {
   std::stringstream ss;
   ss << "MPI Configure: ==============================";
   ss << "\n";
-  ss << "MPI Size: " << size;
+  ss << "MPI Size: " << size << "\n";
+  ss << "MPI Configure End ==============================";
   return ss.str();
 }
 
@@ -214,7 +243,8 @@ inline auto threadConfigureToString(int num_threads) {
   std::stringstream ss;
   ss << "Thread Configure: ==============================";
   ss << "\n";
-  ss << "Thread Num: " << num_threads;
+  ss << "Thread Num: " << num_threads << "\n";
+  ss << "Thread Configure End ==============================";
   return ss.str();
 }
 
@@ -222,7 +252,8 @@ inline auto ompConfigureToString(int num_threads) {
   std::stringstream ss;
   ss << "OpenMP Configure: ==============================";
   ss << "\n";
-  ss << "OpenMP Num: " << num_threads;
+  ss << "OpenMP Num: " << num_threads << "\n";
+  ss << "OpenMP Configure End ==============================";
   return ss.str();
 }
 
