@@ -7,6 +7,7 @@
 #include <iostream>
 #include <random>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 #include "helper.h"
@@ -384,5 +385,93 @@ TrapIntegralDataTypeImp threadImp(int num_threads, const TrapIntegralTaskImp& ta
 TrapIntegralDataTypeImp ompImp(int num_threads, const TrapIntegralTaskImp& task);
 
 }  // namespace trap_integral
+
+namespace carlo_pi {
+
+struct CarloPITask {
+  std::size_t _n;
+  double _radius;
+
+  auto n() const { return _n; }
+
+  auto radius() const {return _radius; }
+
+  std::string toString() const {
+    std::stringstream ss;
+    ss << "Task: " << n();
+    return ss.str();
+  }
+
+  std::size_t bytes() const { return sizeof(*this); }
+
+  static auto createFromInput() {
+    auto n = getInoutOneDimensionProblemSize();
+
+    double r;
+    std::cout << "Input radius:\n";
+    std::cin >> r;
+
+    return CarloPITask{n, r};
+  }
+};
+
+struct CarloPIResult {
+  double _res;
+
+  explicit CarloPIResult(double res) : _res(res) {}
+
+  CarloPIResult(std::size_t counter, std::size_t n)
+      : _res(4 * static_cast<double>(counter) / static_cast<double>(n)) {}
+
+  auto &&res() { return _res; }
+
+  const auto &res() const { return _res; }
+
+  std::string toString(int precision = 6) const {
+    std::stringstream ss;
+    ss.precision(precision);
+    ss << std::fixed;
+
+    ss << "Value: " << _res;
+
+    return ss.str();
+  }
+
+  inline static double epsilon = 1e-4;
+  static auto sameResult(const CarloPIResult &l, const CarloPIResult &r) {
+    return l.res() == r.res() || std::abs(l.res() - r.res()) < epsilon;
+  }
+};
+
+inline auto randomPoint(double l, double r) {
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  static std::uniform_real_distribution<> dis(l,r);
+  return std::make_pair(dis(gen),dis(gen));
+}
+
+auto serialImp(std::size_t n, double radius) {
+  auto circle = [&](double x, double y){
+    auto dis = x*x+y*y;
+    return dis <= radius * radius;
+  };
+
+  std::size_t counter = 0;
+  for(std::size_t i = 0; i < n; ++i) {
+    auto [x,y] = randomPoint(-radius, radius);
+    if (circle(x,y)) {
+      ++counter;
+    }
+  }
+  return counter;
+}
+
+std::size_t mpiImp(int my_rank, int size, const CarloPITask &task, bool printDataCopyTime = false);
+
+// std::size_t threadImp(int num_threads, const CarloPITask &task);
+
+// std::size_t ompImp(int num_threads, const CarloPITask &task);
+
+} // namespace carlo_pi
 
 #endif  // __PROJECT_NAME_HOMEWORK_H__

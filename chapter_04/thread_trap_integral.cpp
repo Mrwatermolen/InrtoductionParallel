@@ -76,11 +76,11 @@ TrapIntegralDataTypeImp threadImp(int num_threads,
     threads[i - 1] = std::thread(f, i);
   }
 
+  f(0);
+
   for (int i = 1; i < num_threads; ++i) {
     threads[i - 1].join();
   }
-
-  f(0);
 
   return std::accumulate(results.begin(), results.end(), 0.0);
 }

@@ -4,6 +4,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <thread>
+#include <vector>
 
 double serialPi(std::size_t l, std::size_t r) {
   double factor = (l % 2) != 0U ? -1.0 : 1.0;
@@ -34,7 +35,8 @@ double busyWaitPi(std::size_t n) {
     std::cout << "n must be divisible by num_threads\n";
     throw std::runtime_error("n must be divisible by num_threads");
   }
-  std::thread t[num_threads];
+  // std::thread t[num_threads]; // wtf! It work!
+  std::vector<std::thread> t(num_threads);
   for (int i = 0; i < num_threads; ++i) {
     auto l = i * (n / num_threads);
     auto r = (i + 1) * (n / num_threads);
@@ -65,7 +67,8 @@ double mutexPi(std::size_t n) {
     std::cout << "n must be divisible by num_threads\n";
     throw std::runtime_error("n must be divisible by num_threads");
   }
-  std::thread t[num_threads];
+  // std::thread t[num_threads];
+  std::vector<std::thread> t(num_threads);
   for (int i = 0; i < num_threads; ++i) {
     auto l = i * (n / num_threads);
     auto r = (i + 1) * (n / num_threads);
