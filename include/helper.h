@@ -2,10 +2,10 @@
 #define __PROJECT_NAME_HELPER_H__
 
 #include <chrono>
-#include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <tuple>
 #include <utility>
 
@@ -15,11 +15,26 @@ inline int getArgNumThread(int argc, char** argv) {
     return 0;
   }
   int num_threads = 1;
+  auto max_num_threads = std::thread::hardware_concurrency();
+
+  if (argc == 1) {
+    std::cout << "num_threads is not specified, set to max_num_threads: "
+              << max_num_threads << "\n";
+    num_threads = max_num_threads;
+    return num_threads;
+  }
+
   if (argc == 2) {
     num_threads = std::stoi(argv[1]);
     if (num_threads < 1) {
       std::cerr << "num_threads must be greater than 0\n";
       return 0;
+    }
+
+    if (max_num_threads < num_threads) {
+      num_threads = max_num_threads;
+      std::cout << "num_threads is too large, set to max_num_threads: "
+                << max_num_threads << "\n";
     }
   }
   return num_threads;
@@ -208,11 +223,13 @@ struct PerformanceCompare {
   ExecutionProfile _serial{};
   ExecutionProfile _parallel{};
 
-  template <typename... Args> auto executeSerial(Args &&...args) {
+  template <typename... Args>
+  auto executeSerial(Args&&... args) {
     return _serial.execute(_sf, std::forward<Args>(args)...);
   }
 
-  template <typename... Args> auto executeParallel(Args &&...args) {
+  template <typename... Args>
+  auto executeParallel(Args&&... args) {
     return _parallel.execute(_pf, std::forward<Args>(args)...);
   }
 
@@ -224,7 +241,7 @@ struct PerformanceCompare {
   auto efficiency() const { return ::efficiency(speedUp(), _num_threads); }
 
   template <typename StringStream = std::stringstream>
-  std::string toString(StringStream &&ss = {}) const {
+  std::string toString(StringStream&& ss = {}) const {
     ss << "Serial: " << _serial.toString() << "\n";
     ss << "Parallel: " << _parallel.toString() << "\n";
     ss << "Speed up: " << speedUp() << "\n";

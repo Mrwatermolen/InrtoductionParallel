@@ -1,20 +1,20 @@
-#include "helper.h"
-#include "homework/carlo_pi.h"
+#include <omp.h>
 
 #include <cstddef>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include "helper.h"
+#include "homework/carlo_pi.h"
+
+// #ifdef _OPENMP
+// #include <omp.h>
+// #endif
 
 namespace homework::carlo_pi {
 
 std::size_t ompImp(int num_threads, const TaskTypeImp &task) {
-
-
-  #ifndef _OPENMP
-  std::cout << "Warning: OpenMP is not enabled\n";
-  #endif
+  // #ifndef _OPENMP
+  //   std::cout << "Warning: OpenMP is not enabled\n";
+  // #endif
 
   using TaskType = TaskTypeImp;
   using DataType = DataTypeImp;
@@ -25,15 +25,16 @@ std::size_t ompImp(int num_threads, const TaskTypeImp &task) {
 
   local_task = task;
 
-
-  #pragma omp parallel num_threads(num_threads)
+#pragma omp parallel num_threads(num_threads)
   {
-    #ifdef _OPENMP
+    // #ifdef _OPENMP
+    //     int my_rank = omp_get_thread_num();
+    // #else
+    //     int my_rank = 0;
+    //     num_threads = 1;
+    // #endif
+
     int my_rank = omp_get_thread_num();
-    #else
-    int my_rank = 0;
-    num_threads = 1;
-    #endif
 
     std::size_t l;
     std::size_t r;
@@ -42,14 +43,11 @@ std::size_t ompImp(int num_threads, const TaskTypeImp &task) {
 
     auto local_counter = serialImp(n, local_task.radius());
 
-    #pragma omp critical
-    {
-      total_counter += local_counter;
-    }
+#pragma omp critical
+    { total_counter += local_counter; }
   }
 
   return total_counter;
-  
 }
 
-} // namespace homework::carlo_pi
+}  // namespace homework::carlo_pi

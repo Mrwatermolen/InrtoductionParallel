@@ -1,6 +1,5 @@
 #include <mpi.h>
 
-#include <chrono>
 #include <cstddef>
 #include <iostream>
 #include <string>
@@ -55,8 +54,9 @@ int main(int argc, char *argv[]) {
 
     std::cout << ("Serial Result: " + serial_res.toString() + "\n");
 
-    auto exact_res = ResultType{homework::trap_integral::givenFunc(input_task.r()) -
-                                homework::trap_integral::givenFunc(input_task.l())};
+    auto exact_res =
+        ResultType{homework::trap_integral::givenFunc(input_task.r()) -
+                   homework::trap_integral::givenFunc(input_task.l())};
 
     std::cout << ("Exact Result: " + exact_res.toString() + "\n");
 

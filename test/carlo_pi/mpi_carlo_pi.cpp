@@ -1,9 +1,9 @@
+#include <mpi.h>
+
+#include <iostream>
+
 #include "helper.h"
 #include "homework/carlo_pi.h"
-#include <functional>
-#include <iostream>
-#include <mpi.h>
-#include <string>
 
 int main(int argc, char **argv) {
   int my_rank = 0;

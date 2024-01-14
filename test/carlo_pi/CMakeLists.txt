@@ -1,5 +1,5 @@
-add_executable(analysis_mpi_mpi_carlo_pi mpi_carlo_pi.cpp)
-target_link_libraries(analysis_mpi_mpi_carlo_pi homework)
+add_executable(analysis_mpi_carlo_pi mpi_carlo_pi.cpp)
+target_link_libraries(analysis_mpi_carlo_pi homework)
 
 add_executable(analysis_thread_carlo_pi thread_carlo_pi.cpp)
 target_link_libraries(analysis_thread_carlo_pi homework)

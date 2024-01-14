@@ -1,13 +1,9 @@
+#include <mpi.h>
+
+#include <random>
+
 #include "helper.h"
 #include "homework/histogram_bin.h"
-#include <cstddef>
-#include <functional>
-#include <ios>
-#include <iostream>
-#include <limits>
-#include <mpi.h>
-#include <random>
-#include <string>
 
 int main(int argc, char **argv) {
   int my_rank = 0;
