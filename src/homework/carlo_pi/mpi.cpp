@@ -1,5 +1,6 @@
-#include <cstddef>
 #include <mpi.h>
+
+#include <cstddef>
 
 #include "helper.h"
 #include "homework/carlo_pi.h"
@@ -28,10 +29,10 @@ std::size_t mpiImp(int my_rank, int size, const TaskTypeImp &task,
 
   local_counter = serialImp(n, local_task.radius());
 
-  MPI_Reduce(&local_counter, &total_counter, 1,
-             MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&local_counter, &total_counter, 1, MPI_UNSIGNED_LONG, MPI_SUM, 0,
+             MPI_COMM_WORLD);
 
   return total_counter;
 }
 
-} // namespace homework::carlo_pi
+}  // namespace homework::carlo_pi

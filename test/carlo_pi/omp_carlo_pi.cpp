@@ -4,7 +4,6 @@
 int main(int argc, char **argv) {
   auto num_threads = getArgNumThread(argc, argv);
 
-
   using TaskType = homework::carlo_pi::TaskTypeImp;
   using DataType = homework::carlo_pi::DataTypeImp;
   using ResultType = homework::carlo_pi::ResultTypeImp;
@@ -26,8 +25,8 @@ int main(int argc, char **argv) {
   auto pc = PerformanceCompare{num_threads, homework::carlo_pi::ompImp,
                                homework::carlo_pi::serialImp<DataType>};
 
-  auto omp_res = ResultType{
-      pc.executeParallel(num_threads, std::ref(omp_task)), omp_task.n()};
+  auto omp_res = ResultType{pc.executeParallel(num_threads, std::ref(omp_task)),
+                            omp_task.n()};
 
   auto serial_res = ResultType{
       pc.executeSerial(serial_task.n(), serial_task.radius()), serial_task.n()};
@@ -44,5 +43,4 @@ int main(int argc, char **argv) {
 
   std::cout << "Performance Compare: ==============================\n";
   std::cout << pc.toString() << "\n";
-
 }

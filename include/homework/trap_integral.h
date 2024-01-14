@@ -1,15 +1,17 @@
 #ifndef __PROJECT_NAME_TRAP_INTEGRAL_H__
 #define __PROJECT_NAME_TRAP_INTEGRAL_H__
 
-#include "helper.h"
-#include "homework.h"
 #include <cmath>
 #include <utility>
 
+#include "helper.h"
+#include "homework.h"
+
 namespace homework::trap_integral {
 
-template <typename T> class TrapIntegralTask : public Task {
-public:
+template <typename T>
+class TrapIntegralTask : public Task {
+ public:
   TrapIntegralTask() = default;
 
   TrapIntegralTask(T l, T r, std::size_t n) : _l(l), _r(r), _n(n) {}
@@ -39,7 +41,7 @@ public:
     return ss.str();
   }
 
-  constexpr std::size_t bytes() const override { return sizeof(*this); }
+  std::size_t bytes() const override { return sizeof(*this); }
 
   static auto createFromInput() {
     T l{};
@@ -53,8 +55,9 @@ public:
   }
 };
 
-template <typename T> class TrapIntegralResult : public Result<T> {
-public:
+template <typename T>
+class TrapIntegralResult : public Result<T> {
+ public:
   TrapIntegralResult() = default;
 
   explicit TrapIntegralResult(T res) : Result<T>(std::move(res)) {}
@@ -113,6 +116,6 @@ TrapIntegralDataTypeImp threadImp(int num_threads,
 TrapIntegralDataTypeImp ompImp(int num_threads,
                                const TrapIntegralTaskImp &task);
 
-} // namespace homework::trap_integral
+}  // namespace homework::trap_integral
 
-#endif // __PROJECT_NAME_TRAP_INTEGRAL_H__
+#endif  // __PROJECT_NAME_TRAP_INTEGRAL_H__

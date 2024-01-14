@@ -46,7 +46,7 @@ public:
     return ss.str();
   }
 
-  constexpr std::size_t bytes() const override { return sizeof(*this); }
+  std::size_t bytes() const override { return sizeof(*this); }
 
   inline static int precision = 6;
 

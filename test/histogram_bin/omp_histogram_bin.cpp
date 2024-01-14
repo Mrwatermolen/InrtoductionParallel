@@ -1,3 +1,4 @@
+#include <random>
 #include "helper.h"
 #include "homework/histogram_bin.h"
 
@@ -40,19 +41,17 @@ int main(int argc, char **argv) {
   omp_task = input_task;
   serial_task = input_task;
 
-  auto pc = PerformanceCompare{num_threads,
-    homework::histogram_bin::ompImp,
-    homework::histogram_bin::serialImp<DataType, DataTypeArray, SizeType,
-                                       SizeTypeArray>};
-  
+  auto pc = PerformanceCompare{
+      num_threads, homework::histogram_bin::ompImp,
+      homework::histogram_bin::serialImp<DataType, DataTypeArray, SizeType,
+                                         SizeTypeArray>};
 
   auto omp_res = ResultType{
-      pc.executeParallel(num_threads,
-                         std::ref(omp_task), std::ref(data))};
+      pc.executeParallel(num_threads, std::ref(omp_task), std::ref(data))};
 
   auto bin_maxes = TaskType::binMaxesFromInfo(
       serial_task.binN(), serial_task.binMin(), serial_task.binMax());
-  
+
   auto serial_bin_count = SizeTypeArray(serial_task.binN(), 0);
 
   pc.executeSerial(std::ref(data), static_cast<SizeType>(0), serial_task.n(),
@@ -67,13 +66,11 @@ int main(int argc, char **argv) {
   std::cout << "Serial Result: ==============================\n";
   std::cout << serial_res.toString(serial_task) << "\n";
 
-    std::cout << "Verify Result: ==============================\n";
+  std::cout << "Verify Result: ==============================\n";
   std::cout << "Same: " << std::boolalpha
-            << ResultType::sameResult(serial_res, omp_res,
-                                      serial_task.binN())
+            << ResultType::sameResult(serial_res, omp_res, serial_task.binN())
             << "\n";
 
   std::cout << "Performance Compare: ==============================\n";
   std::cout << pc.toString() << "\n";
-  
 }

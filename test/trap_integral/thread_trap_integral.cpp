@@ -1,7 +1,3 @@
-#include <numeric>
-#include <thread>
-#include <vector>
-
 #include "helper.h"
 #include "homework/trap_integral.h"
 

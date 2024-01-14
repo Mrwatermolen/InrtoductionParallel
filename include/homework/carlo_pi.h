@@ -1,22 +1,20 @@
 #ifndef __PROJECT_NAME_CARLO_PI_H__
 #define __PROJECT_NAME_CARLO_PI_H__
 
-#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <iostream>
 #include <random>
 #include <sstream>
 #include <utility>
-#include <vector>
 
 #include "helper.h"
 #include "homework.h"
 
 namespace homework::carlo_pi {
 
-template<typename T>
-struct CarloPITask: public Task {
+template <typename T>
+struct CarloPITask : public Task {
   CarloPITask() = default;
 
   explicit CarloPITask(std::size_t n, T radius) : Task(n), _radius(radius) {}
@@ -31,11 +29,12 @@ struct CarloPITask: public Task {
 
   std::string toString() const override {
     std::stringstream ss;
-    ss << "Task: " << " samples: " << this->n() << " radius: " << this->radius() << "\n";
+    ss << "Task: "
+       << " samples: " << this->n() << " radius: " << this->radius() << "\n";
     return ss.str();
   }
 
-  constexpr std::size_t bytes() const override { return sizeof(*this); }
+  std::size_t bytes() const override { return sizeof(*this); }
 
   static auto createFromInput() {
     auto n = getInoutOneDimensionProblemSize();
@@ -48,9 +47,8 @@ struct CarloPITask: public Task {
   }
 };
 
-template<typename T>
-struct CarloPIResult: public Result<T> {
-
+template <typename T>
+struct CarloPIResult : public Result<T> {
   explicit CarloPIResult(T res) : Result<T>(std::move(res)) {}
 
   CarloPIResult(std::size_t counter, std::size_t n)
@@ -73,27 +71,29 @@ struct CarloPIResult: public Result<T> {
   }
 };
 
-
-template<typename T>
+template <typename T>
 inline auto randomPoint(T l, T r) {
-  static std::random_device rd;
-  static std::mt19937 gen(rd());
-  static std::uniform_real_distribution<> dis(l,r);
-  return std::make_pair(dis(gen),dis(gen));
+  // static std::random_device rd;
+  // static std::mt19937 gen(rd());
+  // static std::uniform_real_distribution<> dis(l, r);
+  // return std::make_pair(dis(gen), dis(gen));
+  // use default engine
+  static std::default_random_engine gen(std::random_device{}());
+  static std::uniform_real_distribution<> dis(l, r);
+  return std::make_pair(dis(gen), dis(gen));
 }
 
-
-template<typename T>
+template <typename T>
 auto serialImp(std::size_t n, T radius) {
-  auto circle = [&](T x, T y){
-    auto dis = x*x+y*y;
+  auto circle = [&](T x, T y) {
+    auto dis = x * x + y * y;
     return dis <= radius * radius;
   };
 
   std::size_t counter = 0;
-  for(std::size_t i = 0; i < n; ++i) {
-    auto [x,y] = randomPoint(-radius, radius);
-    if (circle(x,y)) {
+  for (std::size_t i = 0; i < n; ++i) {
+    auto [x, y] = randomPoint(-radius, radius);
+    if (circle(x, y)) {
       ++counter;
     }
   }
@@ -104,7 +104,8 @@ using DataTypeImp = double;
 using TaskTypeImp = CarloPITask<DataTypeImp>;
 using ResultTypeImp = CarloPIResult<DataTypeImp>;
 
-std::size_t mpiImp(int my_rank, int size, const TaskTypeImp &task, bool printDataCopyTime = false);
+std::size_t mpiImp(int my_rank, int size, const TaskTypeImp &task,
+                   bool printDataCopyTime = false);
 
 std::size_t threadImp(int num_threads, const TaskTypeImp &task);
 
@@ -112,4 +113,4 @@ std::size_t ompImp(int num_threads, const TaskTypeImp &task);
 
 }  // namespace homework::carlo_pi
 
-#endif // __PROJECT_NAME_CARLO_PI_H__
+#endif  // __PROJECT_NAME_CARLO_PI_H__
