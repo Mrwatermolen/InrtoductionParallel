@@ -196,21 +196,24 @@ struct ExecutionProfile {
   }
 };
 
+template <typename ParallelFunc, typename SerialFunc>
 struct PerformanceCompare {
+  PerformanceCompare(int num_threads, ParallelFunc pf, SerialFunc sf)
+      : _num_threads(num_threads), _pf(pf), _sf(sf) {}
+
   int _num_threads;
+  ParallelFunc _pf;
+  SerialFunc _sf;
+
   ExecutionProfile _serial{};
   ExecutionProfile _parallel{};
 
-  template <typename Func, typename... Args>
-  auto executeSerial(Func&& func, Args&&... args) {
-    return _serial.execute(std::forward<Func>(func),
-                           std::forward<Args>(args)...);
+  template <typename... Args> auto executeSerial(Args &&...args) {
+    return _serial.execute(_sf, std::forward<Args>(args)...);
   }
 
-  template <typename Func, typename... Args>
-  auto executeParallel(Func&& func, Args&&... args) {
-    return _parallel.execute(std::forward<Func>(func),
-                             std::forward<Args>(args)...);
+  template <typename... Args> auto executeParallel(Args &&...args) {
+    return _parallel.execute(_pf, std::forward<Args>(args)...);
   }
 
   auto speedUp() const {
@@ -221,7 +224,7 @@ struct PerformanceCompare {
   auto efficiency() const { return ::efficiency(speedUp(), _num_threads); }
 
   template <typename StringStream = std::stringstream>
-  std::string toString(StringStream&& ss = {}) const {
+  std::string toString(StringStream &&ss = {}) const {
     ss << "Serial: " << _serial.toString() << "\n";
     ss << "Parallel: " << _parallel.toString() << "\n";
     ss << "Speed up: " << speedUp() << "\n";
