@@ -21,7 +21,6 @@ SizeTypeArrayImp ompImp(int num_threads, const TaskTypeImp &task,
   SizeTypeArray bin_count(task.binN(), 0);
 
   #ifndef _OPENMP
-  // warning msg
   std::cout << "Warning: OpenMP is not enabled\n";
   #endif
 

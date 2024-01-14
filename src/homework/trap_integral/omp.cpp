@@ -9,6 +9,11 @@ namespace homework::trap_integral {
 
 TrapIntegralDataTypeImp ompImp(int num_threads,
                                const TrapIntegralTaskImp &task) {
+  
+  #ifndef _OPENMP
+  std::cout << "Warning: OpenMP is not enabled\n";
+  #endif
+  
   using DataType = TrapIntegralDataTypeImp;
   using TaskType = TrapIntegralTaskImp;
   using ResultType = TrapIntegralResultImp;
