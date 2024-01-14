@@ -1,0 +1,8 @@
+add_executable(analysis_mpi_histogram_bin mpi_histogram_bin.cpp)
+target_link_libraries(analysis_mpi_histogram_bin homework)
+
+add_executable(analysis_thread_histogram_bin thread_histogram_bin.cpp)
+target_link_libraries(analysis_thread_histogram_bin homework)
+
+add_executable(analysis_omp_histogram_bin omp_histogram_bin.cpp)
+target_link_libraries(analysis_omp_histogram_bin homework)

@@ -1,1 +1,0 @@
-add_executable(histogram_bin histogram_bin.cpp)

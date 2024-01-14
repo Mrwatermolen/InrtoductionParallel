@@ -2,8 +2,10 @@
 #define __PROJECT_NAME_HELPER_H__
 
 #include <chrono>
+#include <functional>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <tuple>
 #include <utility>
 
@@ -146,11 +148,97 @@ inline auto efficiency(T speed_up, N num_threads)
   return speed_up / num_threads;
 }
 
+struct ExecutionProfile {
+  using TimeDuration = decltype(std::chrono::high_resolution_clock::now() -
+                                std::chrono::high_resolution_clock::now());
+
+  TimeDuration _duration{};
+
+  auto duration() const { return _duration; }
+
+  template <typename Func, typename... Args>
+  auto execute(Func&& func, Args&&... args) {
+    auto res =
+        measureTime(std::forward<Func>(func), std::forward<Args>(args)...);
+    if constexpr (std::is_same_v<TimeDuration, decltype(res)>) {
+      _duration = res;
+    } else {
+      _duration = std::get<0>(res);
+      return std::get<1>(res);
+    }
+  }
+
+  template <typename StringStream = std::stringstream,
+            typename DurationCastType = std::chrono::milliseconds>
+  std::string toString(StringStream&& ss = {}) const {
+    auto time_ms = std::chrono::duration_cast<DurationCastType>(_duration);
+    ss << "Elapsed Time: " << time_ms.count();
+
+    if constexpr (std::is_same_v<DurationCastType, std::chrono::milliseconds>) {
+      ss << " ms";
+    } else if constexpr (std::is_same_v<DurationCastType,
+                                        std::chrono::microseconds>) {
+      ss << " us";
+    } else if constexpr (std::is_same_v<DurationCastType,
+                                        std::chrono::nanoseconds>) {
+      ss << " ns";
+    } else if constexpr (std::is_same_v<DurationCastType,
+                                        std::chrono::seconds>) {
+      ss << " s";
+    } else if constexpr (std::is_same_v<DurationCastType,
+                                        std::chrono::minutes>) {
+      ss << " min";
+    } else if constexpr (std::is_same_v<DurationCastType, std::chrono::hours>) {
+      ss << " h";
+    }
+
+    return ss.str();
+  }
+};
+
+template <typename ParallelFunc, typename SerialFunc>
+struct PerformanceCompare {
+  PerformanceCompare(int num_threads, ParallelFunc pf, SerialFunc sf)
+      : _num_threads(num_threads), _pf(pf), _sf(sf) {}
+
+  int _num_threads;
+  ParallelFunc _pf;
+  SerialFunc _sf;
+
+  ExecutionProfile _serial{};
+  ExecutionProfile _parallel{};
+
+  template <typename... Args> auto executeSerial(Args &&...args) {
+    return _serial.execute(_sf, std::forward<Args>(args)...);
+  }
+
+  template <typename... Args> auto executeParallel(Args &&...args) {
+    return _parallel.execute(_pf, std::forward<Args>(args)...);
+  }
+
+  auto speedUp() const {
+    return ::speedUp(std::chrono::duration<double>(_serial.duration()),
+                     std::chrono::duration<double>(_parallel.duration()));
+  }
+
+  auto efficiency() const { return ::efficiency(speedUp(), _num_threads); }
+
+  template <typename StringStream = std::stringstream>
+  std::string toString(StringStream &&ss = {}) const {
+    ss << "Serial: " << _serial.toString() << "\n";
+    ss << "Parallel: " << _parallel.toString() << "\n";
+    ss << "Speed up: " << speedUp() << "\n";
+    ss << "Efficiency: " << efficiency();
+    return ss.str();
+  }
+};
+
 inline auto mpiConfigureToString(int size) {
   std::stringstream ss;
   ss << "MPI Configure: ==============================";
   ss << "\n";
-  ss << "MPI Size: " << size;
+  ss << "MPI Size: " << size << "\n";
+  ss << "MPI Configure End ==============================";
   return ss.str();
 }
 
@@ -158,7 +246,8 @@ inline auto threadConfigureToString(int num_threads) {
   std::stringstream ss;
   ss << "Thread Configure: ==============================";
   ss << "\n";
-  ss << "Thread Num: " << num_threads;
+  ss << "Thread Num: " << num_threads << "\n";
+  ss << "Thread Configure End ==============================";
   return ss.str();
 }
 
@@ -166,7 +255,8 @@ inline auto ompConfigureToString(int num_threads) {
   std::stringstream ss;
   ss << "OpenMP Configure: ==============================";
   ss << "\n";
-  ss << "OpenMP Num: " << num_threads;
+  ss << "OpenMP Num: " << num_threads << "\n";
+  ss << "OpenMP Configure End ==============================";
   return ss.str();
 }
 
