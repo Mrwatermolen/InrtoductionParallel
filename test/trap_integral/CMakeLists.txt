@@ -1,0 +1,8 @@
+add_executable(analysis_mpi_trap_integral mpi_trap_integral.cpp)
+target_link_libraries(analysis_mpi_trap_integral homework)
+
+add_executable(analysis_thread_trap_integral thread_trap_integral.cpp)
+target_link_libraries(analysis_thread_trap_integral homework)
+
+add_executable(analysis_omp_trap_integral omp_trap_integral.cpp)
+target_link_libraries(analysis_omp_trap_integral homework)
