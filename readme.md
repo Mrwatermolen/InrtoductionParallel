@@ -36,12 +36,20 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_histogram_bin # MPI
 ./build/bin/analysis_thread_histogram_bin # C++ Standard Thread
 ```
 
+The command is different in Windows.
+
+```cmd
+mpiexec.exe -n 12 .\build\bin\analysis_mpi_histogram_bin.exe
+.\build\bin\analysis_omp_histogram_bin.exe
+.\build\bin\analysis_thread_histogram_bin.exe
+```
+
 - Mac OS:
 
     | (thread = 8) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |--------------|--------------|---------|----------|------------|
     | MPI          | 417 ms       | 1428 ms | 3.42005  | 0.427506   |
-    | OpenMP       | 174 ms       | 1377 ms | 7.8753   | 0.984412   |
+    | OpenMP       | 257 ms       | 1377 ms | 7.8753   | 0.984412   |
     | C++ Standard | 233 ms       | 1366 ms | 5.86062  | 0.732578   |
 
 Note: MPI Data copy time(master scatter task data to worker): 210 ms, so if we don't include data copy time, the elapsed time of MPI is 207 ms.
@@ -53,6 +61,16 @@ Note: MPI Data copy time(master scatter task data to worker): 210 ms, so if we d
     | MPI           | 436 ms       | 1148 ms  | 2.63265  | 0.219388   |
     | OpenMP        | 89 ms        | 1025 ms  | 11.5091  | 0.95909    |
     | C++ Standard  | 106 ms       | 1023 ms  | 9.61855  | 0.801546   |
+
+- Windows
+
+    | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
+    |-------------- |--------------|----------|----------|------------|
+    | MPI           | 359 ms       | 1313 ms  | 3.65102  | 0.304252   |
+    | OpenMP        | 117 ms       | 1319 ms  | 11.1882  | 0.932351   |
+    | C++ Standard  | 138 ms       | 1272 ms  | 9.1672   | 0.763934   |
+
+    Note: MPI Data copy time: 247 ms
 
 ### 2. Trap Integral Test
 
@@ -95,10 +113,18 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_trap_integral # MPI
 - Ubuntu 22.04 (need to retest)
 
     | (thread = 12) | Elapsed Time | Serial  | Speed Up | Efficiency |
-    |--------------|--------------|---------|----------|------------|
-    | MPI          | 729 ms       | 4674 ms | 6.40524  | 0.53377    |
-    | OpenMP       | 377 ms       | 4554 ms | 12.0542  | 1.00452    |
-    | C++ Standard | 632 ms       | 4610 ms | 7.28916  | 0.60743    |
+    |---------------|--------------|---------|----------|------------|
+    | MPI           | 729 ms       | 4674 ms | 6.40524  | 0.53377    |
+    | OpenMP        | 377 ms       | 4554 ms | 12.0542  | 1.00452    |
+    | C++ Standard  | 632 ms       | 4610 ms | 7.28916  | 0.60743    |
+
+- Windows
+
+    | (thread = 12) | Elapsed Time | Serial  | Speed Up | Efficiency |
+    |---------------|--------------|---------|----------|------------|
+    | MPI           | 565 ms       | 3783 ms | 6.69522  | 0.557935   |
+    | OpenMP        | 313 ms       | 3754 ms | 11.9697  | 0.997474   |
+    | C++ Standard  | 548 ms       | 3801 ms | 6.92921  | 0.57743    |
 
 ### 3. Carlo Pi
 
@@ -135,3 +161,25 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_carlo_pi # MPI
     | MPI           | 8150 ms      | 64845 ms | 7.95603  | 0.663003   |
     | OpenMP        | 3933 ms      | 46431 ms | 11,8049  | 0.983743   |
     | C++ Standard  | 46205 ms     | 50956 ms | 0.906765 | 0.0755638  |
+
+- Windows
+
+    | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
+    |-------------- |--------------|----------|----------|------------|
+    | MPI           | 7485 ms      | 46904 ms | 6.26587  | 0.522156   |
+    | OpenMP        | 3834 ms      | 46934 ms | 12.2386  | 1.01989    |
+    | C++ Standard  | 114867 ms    | 47626 ms | 0.414618 | 0.0345515  |
+
+Holy xxxx, the C++ Standard Thread version is so slow, I don't know why.
+
+### Issue
+
+1. All the implementation of OpenMP is completely wrong.
+
+2. The implementation of C++ Standard Thread is so slow in the Carlo Pi test, I don't know why.
+
+## TODO
+
+1. Implement：multiplication between matrix and vector.
+2. Implement: Gaussian Elimination.
+3. CUDA version.

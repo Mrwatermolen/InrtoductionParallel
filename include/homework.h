@@ -2,6 +2,7 @@
 #define __PROJECT_NAME_HOMEWORK_H__
 
 #include <cstddef>
+#include <string>
 #include <utility>
 
 namespace homework {
