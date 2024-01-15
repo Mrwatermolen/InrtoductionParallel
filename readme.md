@@ -12,7 +12,6 @@ run platform:
     - RAM: 2x 8GiB DIMM DDR4 Synchronous Unbuffered (Unregistered) 3600 MHz (0.3 ns)
     - OS: Ubuntu 22.04 and Windows 11
 
-
 ### 1. Histogram Bin Test
 
 Input Case:
@@ -37,7 +36,7 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_histogram_bin # MPI
 ./build/bin/analysis_thread_histogram_bin # C++ Standard Thread
 ```
 
-1. Mac OS:
+- Mac OS:
 
     | (thread = 8) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |--------------|--------------|---------|----------|------------|
@@ -46,6 +45,14 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_histogram_bin # MPI
     | C++ Standard | 233 ms       | 1366 ms | 5.86062  | 0.732578   |
 
 Note: MPI Data copy time(master scatter task data to worker): 210 ms, so if we don't include data copy time, the elapsed time of MPI is 207 ms.
+
+- Ubuntu
+
+    | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
+    |-------------- |--------------|----------|----------|------------|
+    | MPI           | 436 ms       | 1148 ms  | 2.63265  | 0.219388   |
+    | OpenMP        | 89 ms        | 1025 ms  | 11.5091  | 0.95909    |
+    | C++ Standard  | 106 ms       | 1023 ms  | 9.61855  | 0.801546   |
 
 ### 2. Trap Integral Test
 
@@ -75,7 +82,8 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_trap_integral # MPI
 ./build/bin/analysis_thread_trap_integral # C++ Standard Thread
 ```
 
-1. Mac OS
+- Mac OS
+
     | (thread = 8) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |--------------|--------------|---------|----------|------------|
     | MPI          | 354 ms       | 4705 ms | 13.2848  | 1.6606     |
@@ -83,12 +91,14 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_trap_integral # MPI
     | C++ Standard | 371 ms       | 2002 ms | 5.39414  | 0.674268   |
 
     I guess there is a problem with the MPI version, the serial elapsed time is too long, so that the speed up and efficiency is too high.
-2. Ubuntu 22.04 (need to retest)
-    | (thread = 8) | Elapsed Time | Serial  | Speed Up | Efficiency |
+
+- Ubuntu 22.04 (need to retest)
+
+    | (thread = 12) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |--------------|--------------|---------|----------|------------|
-    | MPI          | 695 ms       | 4605 ms | 6.62067  | 0.827584   |
-    | OpenMP       | 636 ms       | 4341 ms | 6.82323  | 0.852904   |
-    | C++ Standard | 631 ms       | 4389 ms | 6.94838  | 0.868547   |
+    | MPI          | 729 ms       | 4674 ms | 6.40524  | 0.53377    |
+    | OpenMP       | 377 ms       | 4554 ms | 12.0542  | 1.00452    |
+    | C++ Standard | 632 ms       | 4610 ms | 7.28916  | 0.60743    |
 
 ### 3. Carlo Pi
 
@@ -110,9 +120,18 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_carlo_pi # MPI
 ./build/bin/analysis_thread_carlo_pi # C++ Standard Thread
 ```
 
-1. Mac OS
+- Mac OS
+
     | (thread = 8) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |--------------|--------------|----------|----------|------------|
     | MPI          | 9409 ms      | 65811 ms | 6.99389  | 0.874236   |
     | OpenMP       | 7829 ms      | 62956 ms | 8.04126  | 1.00516    |
     | C++ Standard | 26643 ms     | 62543 ms | 2.34745  | 0.293432   |
+
+- Ubuntu
+
+    | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
+    |-------------- |--------------|----------|----------|------------|
+    | MPI           | 8150 ms      | 64845 ms | 7.95603  | 0.663003   |
+    | OpenMP        | 3933 ms      | 46431 ms | 11,8049  | 0.983743   |
+    | C++ Standard  | 46205 ms     | 50956 ms | 0.906765 | 0.0755638  |

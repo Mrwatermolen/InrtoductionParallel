@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <numeric>
 #include <thread>
 
 #include "helper.h"
