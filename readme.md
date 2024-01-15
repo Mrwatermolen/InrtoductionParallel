@@ -49,7 +49,7 @@ mpiexec.exe -n 12 .\build\bin\analysis_mpi_histogram_bin.exe
     | (thread = 8) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |--------------|--------------|---------|----------|------------|
     | MPI          | 417 ms       | 1428 ms | 3.42005  | 0.427506   |
-    | OpenMP       | 257 ms       | 1377 ms | 7.8753   | 0.984412   |
+    | OpenMP       | 229 ms       | 1373 ms | 5.97169  | 0.746461   |
     | C++ Standard | 233 ms       | 1366 ms | 5.86062  | 0.732578   |
 
 Note: MPI Data copy time(master scatter task data to worker): 210 ms, so if we don't include data copy time, the elapsed time of MPI is 207 ms.
@@ -104,11 +104,10 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_trap_integral # MPI
 
     | (thread = 8) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |--------------|--------------|---------|----------|------------|
-    | MPI          | 354 ms       | 4705 ms | 13.2848  | 1.6606     |
-    | OpenMP       | 275 ms       | 2020 ms | 7.32903  | 0.916129   |
+    | MPI          | 351 ms       | 2106 ms | 5.99394  | 0.749243   |
+    | OpenMP       | 391 ms       | 1997 ms | 5.09651  | 0.637063   |
     | C++ Standard | 371 ms       | 2002 ms | 5.39414  | 0.674268   |
 
-    I guess there is a problem with the MPI version, the serial elapsed time is too long, so that the speed up and efficiency is too high.
 
 - Ubuntu 22.04 (need to retest)
 
@@ -151,7 +150,7 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_carlo_pi # MPI
     | (thread = 8) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |--------------|--------------|----------|----------|------------|
     | MPI          | 9409 ms      | 65811 ms | 6.99389  | 0.874236   |
-    | OpenMP       | 7829 ms      | 62956 ms | 8.04126  | 1.00516    |
+    | OpenMP       | 27508 ms     | 62319 ms | 2.26546  | 0.283183    |
     | C++ Standard | 26643 ms     | 62543 ms | 2.34745  | 0.293432   |
 
 - Ubuntu
@@ -170,13 +169,15 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_carlo_pi # MPI
     | OpenMP        | 3834 ms      | 46934 ms | 12.2386  | 1.01989    |
     | C++ Standard  | 114867 ms    | 47626 ms | 0.414618 | 0.0345515  |
 
-Holy xxxx, the C++ Standard Thread version is so slow, I don't know why.
+Holy xxxx, the C++ Standard Thread version is so slow, I don't know why. Update: also in OpenMP.
 
 ### Issue
 
-1. All the implementation of OpenMP is completely wrong.
+1. All the implementation of OpenMP is completely wrong. (Fixed. Reason: the order of compline and linker.)
 
-2. The implementation of C++ Standard Thread is so slow in the Carlo Pi test, I don't know why.
+2. The implementation of C++ Standard Thread and OpenMP is so slow in the Carlo Pi test, I don't know why. (I guess the reason is the random number generator.)
+
+3. The test of mpi trap integral in Mac OS represent the poor performance of the serial version. (Fixed. I don't know why but I fixed it. TODO: figure out why.)
 
 ## TODO
 

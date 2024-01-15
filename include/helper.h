@@ -47,6 +47,12 @@ inline auto getInoutOneDimensionProblemSize() {
   return n;
 }
 
+inline auto processInfoPrefixString(int my_rank, int size) {
+  std::stringstream ss;
+  ss << "Process " << my_rank << " of " << size << ": ";
+  return ss.str();
+}
+
 template <typename T>
 inline void distributeTask(int my_rank, int size, T n, T* start, T* end) {
   auto quotient = n / size;

@@ -37,10 +37,16 @@ int main(int argc, char *argv[]) {
     std::cout << (input_task.toString() + "\n");
   }
 
-  auto p = PerformanceCompare{
-      size, homework::trap_integral::mpiImp,
-      homework::trap_integral::serialImp<DataType, std::size_t,
-                                         DataType(const DataType &)>};
+  auto f = [](double l, double r, std::size_t n) {
+    return homework::trap_integral::serialImp(
+        l, r, n, homework::trap_integral::givenFuncDerivative<double>);
+  };
+  auto p = PerformanceCompare{size, homework::trap_integral::mpiImp, f};
+  // Why this get poor performance on Mac OS?
+  // auto p = PerformanceCompare{
+  //   size, homework::trap_integral::mpiImp,
+  //   homework::trap_integral::serialImp<DataType, std::size_t,
+  //                                      DataType(const DataType &)>};
   mpi_res =
       ResultType{p.executeParallel(my_rank, size, std::ref(mpi_task), false)};
 
@@ -48,9 +54,11 @@ int main(int argc, char *argv[]) {
     std::cout << ("Result: ==============================\n");
     std::cout << ("MPI Result: " + mpi_res.toString() + "\n");
 
-    auto serial_res = ResultType{p.executeSerial(
-        serial_task.l(), serial_task.r(), serial_task.n(),
-        homework::trap_integral::givenFuncDerivative<const double &>)};
+    // auto serial_res = ResultType{p.executeSerial(
+    //     serial_task.l(), serial_task.r(), serial_task.n(),
+    //     homework::trap_integral::givenFuncDerivative<const double &>)};
+    auto serial_res = ResultType{
+        p.executeSerial(serial_task.l(), serial_task.r(), serial_task.n())};
 
     std::cout << ("Serial Result: " + serial_res.toString() + "\n");
 

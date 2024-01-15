@@ -22,7 +22,7 @@ find_package(OpenMP REQUIRED)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${MPI_INCLUDE_PATH})
 
-set(PROJECET_NAME_THIRD_LIBRARIES ${MPI_LIBRARIES} ${OpenMP_CXX_LIBRARIES})
+set(PROJECET_NAME_THIRD_LIBRARIES ${MPI_LIBRARIES} OpenMP::OpenMP_CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # add_subdirectory(chapter_01)
@@ -32,3 +32,4 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # add_subdirectory(chapter_05)
 add_subdirectory(src)
 add_subdirectory(test)
+enable_testing()

@@ -1,0 +1,6 @@
+add_executable(mpi_hello_world mpi_hello_world.cpp)
+add_executable(omp_hello_world omp_hello_world.cpp)
+add_executable(thread_hello_world thread_hello_world.cpp)
+target_link_libraries(mpi_hello_world exercises)
+target_link_libraries(omp_hello_world exercises)
+target_link_libraries(thread_hello_world exercises)

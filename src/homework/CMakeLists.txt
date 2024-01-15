@@ -10,4 +10,4 @@ add_library(
 
 set(HOMEWORK_LIBS histogram_bin trap_integral carlo_pi)
 
-target_link_libraries(homework PUBLIC ${HOMEWORK_LIBS} ${PROJECET_NAME_THIRD_LIBRARIES})
+target_link_libraries(homework PUBLIC  ${PROJECET_NAME_THIRD_LIBRARIES} ${HOMEWORK_LIBS})
