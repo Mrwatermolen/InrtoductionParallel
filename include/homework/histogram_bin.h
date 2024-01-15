@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace homework::histogram_bin {
 
