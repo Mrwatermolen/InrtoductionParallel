@@ -66,11 +66,11 @@ Note: MPI Data copy time(master scatter task data to worker): 210 ms, so if we d
 
     | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |-------------- |--------------|----------|----------|------------|
-    | MPI           | 359 ms       | 1313 ms  | 3.65102  | 0.304252   |
-    | OpenMP        | 117 ms       | 1319 ms  | 11.1882  | 0.932351   |
-    | C++ Standard  | 138 ms       | 1272 ms  | 9.1672   | 0.763934   |
+    | MPI           | 494 ms       | 1053 ms  | 2.13188  | 0.177656   |
+    | OpenMP        | 95 ms        | 1080 ms  | 11.2659  | 0.938825   |
+    | C++ Standard  | 101 ms       | 1068 ms  | 10.531   | 0.877585   |
 
-    Note: MPI Data copy time: 247 ms
+    Note: MPI Data copy time: 369 ms
 
 ### 2. Trap Integral Test
 
@@ -121,9 +121,9 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_trap_integral # MPI
 
     | (thread = 12) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |---------------|--------------|---------|----------|------------|
-    | MPI           | 565 ms       | 3783 ms | 6.69522  | 0.557935   |
-    | OpenMP        | 313 ms       | 3754 ms | 11.9697  | 0.997474   |
-    | C++ Standard  | 548 ms       | 3801 ms | 6.92921  | 0.57743    |
+    | MPI           | 1288 ms      | 9319 ms | 7.23432  | 0.60286    |
+    | OpenMP        | 1247 ms      | 9283 ms | 7.44451  | 0.620376   |
+    | C++ Standard  | 1249 ms      | 9283 ms | 7.43059  | 0.619216   |
 
 ### 3. Carlo Pi
 
@@ -165,9 +165,9 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_carlo_pi # MPI
 
     | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |-------------- |--------------|----------|----------|------------|
-    | MPI           | 7485 ms      | 46904 ms | 6.26587  | 0.522156   |
-    | OpenMP        | 3834 ms      | 46934 ms | 12.2386  | 1.01989    |
-    | C++ Standard  | 114867 ms    | 47626 ms | 0.414618 | 0.0345515  |
+    | MPI           | 6466 ms      | 53806 ms | 8.32043  | 0.693369   |
+    | OpenMP        | 34850 ms     | 53980 ms | 1.54889  | 0.129074   |
+    | C++ Standard  | 35379 ms     | 54335 ms | 1.5358   | 0.127983   |
 
 Holy xxxx, the C++ Standard Thread version is so slow, I don't know why. Update: also in OpenMP.
 

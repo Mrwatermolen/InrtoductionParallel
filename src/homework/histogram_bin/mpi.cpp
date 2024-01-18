@@ -68,8 +68,14 @@ SizeTypeArrayImp mpiImp(int my_rank, int size, const TaskTypeImp &task,
   //  int count = total_task.binN(); error: count must be the same for
   // all? TODO: is right?
   int count = local_task.binN();
-  MPI_Reduce(local_bin_count.data(), total_bin_count.data(), count,
-             MPI_UNSIGNED_LONG, MPI_SUM, 0, MPI_COMM_WORLD); // UNSIGNED_LONG is SizeTypeImp
+  // 4 8 16
+  if constexpr (sizeof(SizeTypeImp) == 4) {
+    MPI_Reduce(local_bin_count.data(), total_bin_count.data(), count,
+               MPI_UNSIGNED, MPI_SUM, 0, MPI_COMM_WORLD); // UNSIGNED is SizeTypeImp
+  } else if constexpr (sizeof(SizeTypeImp) == 8) {
+    MPI_Reduce(local_bin_count.data(), total_bin_count.data(), count,
+               MPI_UNSIGNED_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD); // UNSIGNED_LONG is SizeTypeImp
+  }  
 
   return total_bin_count;
 }
