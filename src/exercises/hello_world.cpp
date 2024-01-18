@@ -13,7 +13,7 @@ namespace exercises::hello_world {
 
 void mpiPrintHelloWorld() {
   int my_rank = 0;
-  int size = 0;
+  int size = 1;
 
   MPI_Init(nullptr, nullptr);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -37,7 +37,7 @@ void ompPrintHelloWorld() {
 }
 
 void threadPrintHelloWorld() {
-  auto num_threads = getArgNumThread(0, nullptr);
+  auto num_threads = getArgNumThread(1, nullptr);
 
   std::vector<std::thread> threads;
   threads.reserve(num_threads);

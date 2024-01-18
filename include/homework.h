@@ -62,42 +62,4 @@ class Result {
 };
 }  // namespace homework
 
-namespace global_sum {
-
-void mpiRun();
-
-double computeNextValueWithRandomSleep();
-
-double computeNextValue();
-
-template <typename T>
-std::string taskToString(T l, T r);
-
-void domSum(int my_rank, int size, double* sum);
-
-void mpiPlatSum(int my_rank, int size, int tag, double* sum);
-
-void mpiTreeSum(int my_rank, int size, int tag, double* sum);
-
-void mpiTreeSum01(int my_rank, int size, int divisor, int core_different,
-                  double* sum, int tag);
-
-template <typename T>
-inline auto serialSum(T&& l, T&& r, bool sleep = true) {
-  double sum = 0;
-  if (sleep) {
-    for (int i = l; i < r; ++i) {
-      sum += computeNextValueWithRandomSleep();
-    }
-    return sum;
-  }
-
-  for (int i = l; i < r; ++i) {
-    sum += computeNextValue();
-  }
-  return sum;
-}
-
-}  // namespace global_sum
-
 #endif  // __PROJECT_NAME_HOMEWORK_H__

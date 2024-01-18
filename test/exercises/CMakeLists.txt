@@ -4,3 +4,6 @@ add_executable(thread_hello_world thread_hello_world.cpp)
 target_link_libraries(mpi_hello_world exercises)
 target_link_libraries(omp_hello_world exercises)
 target_link_libraries(thread_hello_world exercises)
+
+add_executable(global_sum global_sum.cpp)
+target_link_libraries(global_sum exercises)
