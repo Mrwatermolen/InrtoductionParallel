@@ -1,0 +1,2 @@
+add_executable(analysis_mpi_matrix_multi_vector mpi_matrix_multi_vector.cpp)
+target_link_libraries(analysis_mpi_matrix_multi_vector homework)

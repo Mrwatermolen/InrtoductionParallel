@@ -2,6 +2,8 @@
 
 ## Just Note
 
+>Be care: The data here is obtained through testing under different time periods and varying system loads, and is not representative.
+
 build in `Release`
 
 run platform:
@@ -146,12 +148,11 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_carlo_pi # MPI
 ```
 
 - Mac OS
-
     | (thread = 8) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |--------------|--------------|----------|----------|------------|
     | MPI          | 9409 ms      | 65811 ms | 6.99389  | 0.874236   |
-    | OpenMP       | 27508 ms     | 62319 ms | 2.26546  | 0.283183   |
-    | C++ Standard | 26643 ms     | 62543 ms | 2.34745  | 0.293432   |
+    | OpenMP       | 5998 ms      | 35391 ms | 5.90013  | 0.737516   |
+    | C++ Standard | 6265 ms      | 35454 ms | 5.6584   | 0.707301   |
 
 - Ubuntu
 
