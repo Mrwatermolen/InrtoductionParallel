@@ -59,7 +59,7 @@ Note: MPI Data copy time(master scatter task data to worker): 210 ms, so if we d
     | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |-------------- |--------------|----------|----------|------------|
     | MPI           | 436 ms       | 1148 ms  | 2.63265  | 0.219388   |
-    | OpenMP        | 89 ms        | 1025 ms  | 11.5091  | 0.95909    |
+    | OpenMP        | 119 ms       | 1020 ms  | 8.855637 | 0.713031   |
     | C++ Standard  | 106 ms       | 1023 ms  | 9.61855  | 0.801546   |
 
 - Windows
@@ -114,7 +114,7 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_trap_integral # MPI
     | (thread = 12) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |---------------|--------------|---------|----------|------------|
     | MPI           | 729 ms       | 4674 ms | 6.40524  | 0.53377    |
-    | OpenMP        | 377 ms       | 4554 ms | 12.0542  | 1.00452    |
+    | OpenMP        | 624 ms       | 5436 ms | 7.26813  | 1.00452    |
     | C++ Standard  | 632 ms       | 4610 ms | 7.28916  | 0.60743    |
 
 - Windows
@@ -158,7 +158,7 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_carlo_pi # MPI
     | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |-------------- |--------------|----------|----------|------------|
     | MPI           | 8150 ms      | 64845 ms | 7.95603  | 0.663003   |
-    | OpenMP        | 3933 ms      | 46431 ms | 11,8049  | 0.983743   |
+    | OpenMP        | 33557 ms     | 47728 ms | 1.42229  | 0.118524   |
     | C++ Standard  | 46205 ms     | 50956 ms | 0.906765 | 0.0755638  |
 
 - Windows
