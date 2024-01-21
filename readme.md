@@ -158,8 +158,8 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_carlo_pi # MPI
     | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |-------------- |--------------|----------|----------|------------|
     | MPI           | 8150 ms      | 64845 ms | 7.95603  | 0.663003   |
-    | OpenMP        | 33557 ms     | 47728 ms | 1.42229  | 0.118524   |
-    | C++ Standard  | 46205 ms     | 50956 ms | 0.906765 | 0.0755638  |
+    | OpenMP        | 7323 ms      | 61583 ms | 8.40882  | 0.700735   |
+    | C++ Standard  | 7326 ms      | 61593 ms | 8.40645  | 0.700537   |
 
 - Windows
 
@@ -175,7 +175,7 @@ Holy xxxx, the C++ Standard Thread version is so slow, I don't know why. Update:
 
 1. All the implementation of OpenMP is completely wrong. (Fixed. Reason: the order of compline and linker.)
 
-2. The implementation of C++ Standard Thread and OpenMP is so slow in the Carlo Pi test, I don't know why. (I guess the reason is the random number generator.)
+2. The implementation of C++ Standard Thread and OpenMP is so slow in the Carlo Pi test, I don't know why. (I guess the reason is the random number generator.) Fixed: [Ref](https://stackoverflow.com/questions/21237905/how-do-i-generate-thread-safe-uniform-random-numbers)
 
 3. The test of mpi trap integral in Mac OS represent the poor performance of the serial version. (Fixed. I don't know why but I fixed it. TODO: figure out why.)
 

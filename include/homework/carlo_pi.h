@@ -73,13 +73,12 @@ struct CarloPIResult : public Result<T> {
 
 template <typename T>
 inline auto randomPoint(T l, T r) {
-  // static std::random_device rd;
-  // static std::mt19937 gen(rd());
+  // ref: 
+  // https://stackoverflow.com/questions/21237905/how-do-i-generate-thread-safe-uniform-random-numbers
+  static thread_local  std::mt19937 gen;
+  // static std::default_random_engine gen(std::random_device{}());
   // static std::uniform_real_distribution<> dis(l, r);
-  // return std::make_pair(dis(gen), dis(gen));
-  // use default engine
-  static std::default_random_engine gen(std::random_device{}());
-  static std::uniform_real_distribution<> dis(l, r);
+  std::uniform_real_distribution<> dis(l, r);
   return std::make_pair(dis(gen), dis(gen));
 }
 
