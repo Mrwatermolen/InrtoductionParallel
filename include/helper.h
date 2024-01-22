@@ -47,6 +47,12 @@ inline auto getInoutOneDimensionProblemSize() {
   return n;
 }
 
+inline auto processInfoPrefixString(int my_rank, int size) {
+  std::stringstream ss;
+  ss << "Process " << my_rank << " of " << size << ": ";
+  return ss.str();
+}
+
 template <typename T>
 inline void distributeTask(int my_rank, int size, T n, T* start, T* end) {
   auto quotient = n / size;
@@ -81,6 +87,40 @@ inline auto treeCommunication(int my_rank, int size, SendFunc&& s,
     }
 
     r(partner);
+    self(self, (flag << 1));
+  };
+
+  f(f, 1);
+}
+
+template <typename LeftFunc, typename RightFunc>
+inline auto inverseTreeCommunication(int my_rank, int size, LeftFunc&& l,
+                                     RightFunc&& r) {
+  auto f = [&](auto&& self, auto&& flag) {
+    if (size <= flag) {
+      return;
+    }
+
+    auto partner = my_rank ^ flag;
+    if (size <= partner) {
+      self(self, (flag << 1));
+      return;
+    }
+
+    bool right_node = (my_rank & flag) != 0;
+
+    if (right_node && partner < flag) {
+      r(partner);
+      self(self, (flag << 1));
+      return;
+    }
+
+    if (!right_node && my_rank < flag) {
+      l(partner);
+      self(self, (flag << 1));
+      return;
+    }
+
     self(self, (flag << 1));
   };
 
@@ -276,5 +316,50 @@ inline auto ompConfigureToString(int num_threads) {
   ss << "OpenMP Configure End ==============================";
   return ss.str();
 }
+
+namespace my_msg {
+
+class MyMsgException : public std::exception {
+ public:
+  explicit MyMsgException(std::string msg) : _msg(std::move(msg)) {}
+
+  const char* what() const noexcept override { return _msg.c_str(); }
+
+ private:
+  std::string _msg;
+};
+
+template <typename SendFunc, typename RecvFunc>
+inline void reduce(int my_rank, int size, SendFunc&& s, RecvFunc&& r,
+                   int root = 0) {
+  if (root != 0) {
+    throw MyMsgException("reduce only support root = 0");
+  }
+
+  treeCommunication(my_rank, size, std::forward<SendFunc>(s),
+                    std::forward<RecvFunc>(r));
+}
+
+template <typename SendFunc, typename RecvFunc>
+inline void broadcast(int my_rank, int size, SendFunc&& s, RecvFunc&& r,
+                      int root = 0) {
+  if (root != 0) {
+    throw MyMsgException("broadcast only support root = 0");
+  }
+
+  inverseTreeCommunication(my_rank, size, std::forward<SendFunc>(s),
+                           std::forward<RecvFunc>(r));
+}
+
+template <typename SRFunc, typename RSFunc, typename SendFunc,
+          typename RecvFunc>
+inline void reduceAll(int my_rank, int size, SRFunc&& sr, RSFunc&& rs,
+                      SendFunc&& s, RecvFunc&& r) {
+  platCommunication(my_rank, size, std::forward<SRFunc>(sr),
+                    std::forward<RSFunc>(rs), std::forward<SendFunc>(s),
+                    std::forward<RecvFunc>(r));
+}
+
+}  // namespace my_msg
 
 #endif  // __PROJECT_NAME_HELPER_H__

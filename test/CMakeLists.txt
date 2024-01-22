@@ -1,3 +1,5 @@
 add_subdirectory(histogram_bin)
 add_subdirectory(trap_integral)
 add_subdirectory(carlo_pi)
+add_subdirectory(exercises)
+add_subdirectory(matrix_multi_vector)

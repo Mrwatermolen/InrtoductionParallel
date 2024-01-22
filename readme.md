@@ -2,6 +2,8 @@
 
 ## Just Note
 
+>Be care: The data here is obtained through testing under different time periods and varying system loads, and is not representative.
+
 build in `Release`
 
 run platform:
@@ -49,7 +51,7 @@ mpiexec.exe -n 12 .\build\bin\analysis_mpi_histogram_bin.exe
     | (thread = 8) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |--------------|--------------|---------|----------|------------|
     | MPI          | 417 ms       | 1428 ms | 3.42005  | 0.427506   |
-    | OpenMP       | 257 ms       | 1377 ms | 7.8753   | 0.984412   |
+    | OpenMP       | 229 ms       | 1373 ms | 5.97169  | 0.746461   |
     | C++ Standard | 233 ms       | 1366 ms | 5.86062  | 0.732578   |
 
 Note: MPI Data copy time(master scatter task data to worker): 210 ms, so if we don't include data copy time, the elapsed time of MPI is 207 ms.
@@ -59,18 +61,18 @@ Note: MPI Data copy time(master scatter task data to worker): 210 ms, so if we d
     | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |-------------- |--------------|----------|----------|------------|
     | MPI           | 436 ms       | 1148 ms  | 2.63265  | 0.219388   |
-    | OpenMP        | 89 ms        | 1025 ms  | 11.5091  | 0.95909    |
+    | OpenMP        | 119 ms       | 1020 ms  | 8.855637 | 0.713031   |
     | C++ Standard  | 106 ms       | 1023 ms  | 9.61855  | 0.801546   |
 
 - Windows
 
     | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |-------------- |--------------|----------|----------|------------|
-    | MPI           | 359 ms       | 1313 ms  | 3.65102  | 0.304252   |
-    | OpenMP        | 117 ms       | 1319 ms  | 11.1882  | 0.932351   |
-    | C++ Standard  | 138 ms       | 1272 ms  | 9.1672   | 0.763934   |
+    | MPI           | 494 ms       | 1053 ms  | 2.13188  | 0.177656   |
+    | OpenMP        | 95 ms        | 1080 ms  | 11.2659  | 0.938825   |
+    | C++ Standard  | 101 ms       | 1068 ms  | 10.531   | 0.877585   |
 
-    Note: MPI Data copy time: 247 ms
+    Note: MPI Data copy time: 369 ms
 
 ### 2. Trap Integral Test
 
@@ -104,27 +106,26 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_trap_integral # MPI
 
     | (thread = 8) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |--------------|--------------|---------|----------|------------|
-    | MPI          | 354 ms       | 4705 ms | 13.2848  | 1.6606     |
-    | OpenMP       | 275 ms       | 2020 ms | 7.32903  | 0.916129   |
+    | MPI          | 351 ms       | 2106 ms | 5.99394  | 0.749243   |
+    | OpenMP       | 391 ms       | 1997 ms | 5.09651  | 0.637063   |
     | C++ Standard | 371 ms       | 2002 ms | 5.39414  | 0.674268   |
 
-    I guess there is a problem with the MPI version, the serial elapsed time is too long, so that the speed up and efficiency is too high.
 
 - Ubuntu 22.04 (need to retest)
 
     | (thread = 12) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |---------------|--------------|---------|----------|------------|
     | MPI           | 729 ms       | 4674 ms | 6.40524  | 0.53377    |
-    | OpenMP        | 377 ms       | 4554 ms | 12.0542  | 1.00452    |
+    | OpenMP        | 624 ms       | 5436 ms | 7.26813  | 1.00452    |
     | C++ Standard  | 632 ms       | 4610 ms | 7.28916  | 0.60743    |
 
 - Windows
 
     | (thread = 12) | Elapsed Time | Serial  | Speed Up | Efficiency |
     |---------------|--------------|---------|----------|------------|
-    | MPI           | 565 ms       | 3783 ms | 6.69522  | 0.557935   |
-    | OpenMP        | 313 ms       | 3754 ms | 11.9697  | 0.997474   |
-    | C++ Standard  | 548 ms       | 3801 ms | 6.92921  | 0.57743    |
+    | MPI           | 1288 ms      | 9319 ms | 7.23432  | 0.60286    |
+    | OpenMP        | 1247 ms      | 9283 ms | 7.44451  | 0.620376   |
+    | C++ Standard  | 1249 ms      | 9283 ms | 7.43059  | 0.619216   |
 
 ### 3. Carlo Pi
 
@@ -147,36 +148,35 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_carlo_pi # MPI
 ```
 
 - Mac OS
-
     | (thread = 8) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |--------------|--------------|----------|----------|------------|
     | MPI          | 9409 ms      | 65811 ms | 6.99389  | 0.874236   |
-    | OpenMP       | 7829 ms      | 62956 ms | 8.04126  | 1.00516    |
-    | C++ Standard | 26643 ms     | 62543 ms | 2.34745  | 0.293432   |
+    | OpenMP       | 5998 ms      | 35391 ms | 5.90013  | 0.737516   |
+    | C++ Standard | 6265 ms      | 35454 ms | 5.6584   | 0.707301   |
 
 - Ubuntu
 
     | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |-------------- |--------------|----------|----------|------------|
     | MPI           | 8150 ms      | 64845 ms | 7.95603  | 0.663003   |
-    | OpenMP        | 3933 ms      | 46431 ms | 11,8049  | 0.983743   |
-    | C++ Standard  | 46205 ms     | 50956 ms | 0.906765 | 0.0755638  |
+    | OpenMP        | 7323 ms      | 61583 ms | 8.40882  | 0.700735   |
+    | C++ Standard  | 7326 ms      | 61593 ms | 8.40645  | 0.700537   |
 
 - Windows
 
     | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |-------------- |--------------|----------|----------|------------|
-    | MPI           | 7485 ms      | 46904 ms | 6.26587  | 0.522156   |
-    | OpenMP        | 3834 ms      | 46934 ms | 12.2386  | 1.01989    |
-    | C++ Standard  | 114867 ms    | 47626 ms | 0.414618 | 0.0345515  |
-
-Holy xxxx, the C++ Standard Thread version is so slow, I don't know why.
+    | MPI           | 3483 ms      | 20745 ms | 5.95483  | 0.496236   |
+    | OpenMP        | 3285 ms      | 22480 ms | 6.84187  | 0.570156   |
+    | C++ Standard  | 3285 ms      | 22480 ms | 6.84187  | 0.570156   |
 
 ### Issue
 
-1. All the implementation of OpenMP is completely wrong.
+1. All the implementation of OpenMP is completely wrong. (Fixed. Reason: the order of compline and linker.)
 
-2. The implementation of C++ Standard Thread is so slow in the Carlo Pi test, I don't know why.
+2. The implementation of C++ Standard Thread and OpenMP is so slow in the Carlo Pi test, I don't know why. (I guess the reason is the random number generator.) Fixed: [Ref](https://stackoverflow.com/questions/21237905/how-do-i-generate-thread-safe-uniform-random-numbers)
+
+3. The test of mpi trap integral in Mac OS represent the poor performance of the serial version. (Fixed. I don't know why but I fixed it. TODO: figure out why.)
 
 ## TODO
 
