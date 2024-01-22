@@ -166,11 +166,9 @@ mpiexec --use-hwthread-cpus  ./build/bin/analysis_mpi_carlo_pi # MPI
 
     | (thread = 12) | Elapsed Time | Serial   | Speed Up | Efficiency |
     |-------------- |--------------|----------|----------|------------|
-    | MPI           | 6466 ms      | 53806 ms | 8.32043  | 0.693369   |
-    | OpenMP        | 34850 ms     | 53980 ms | 1.54889  | 0.129074   |
-    | C++ Standard  | 35379 ms     | 54335 ms | 1.5358   | 0.127983   |
-
-Holy xxxx, the C++ Standard Thread version is so slow, I don't know why. Update: also in OpenMP.
+    | MPI           | 3483 ms      | 20745 ms | 5.95483  | 0.496236   |
+    | OpenMP        | 3285 ms      | 22480 ms | 6.84187  | 0.570156   |
+    | C++ Standard  | 3285 ms      | 22480 ms | 6.84187  | 0.570156   |
 
 ### Issue
 
