@@ -1,0 +1,2 @@
+package_add_test(test_thread_safe_lookup_table test_thread_safe_lookup_table.cpp)
+package_add_test(test_thread_pool test_thread_pool.cpp)
