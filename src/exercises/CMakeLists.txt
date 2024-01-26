@@ -5,3 +5,4 @@ target_link_libraries(exercises PUBLIC ${PROJECET_NAME_THIRD_LIBRARIES} OpenMP::
 add_subdirectory(thread)
 add_subdirectory(mpi)
 add_subdirectory(thread_safe_structure)
+add_subdirectory(atm_csp)
