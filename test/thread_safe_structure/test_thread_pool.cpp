@@ -14,7 +14,12 @@ auto listToString(const std::list<int>& list) {
   return ss.str();
 }
 
-struct SortList {
+
+
+TEST(ThreadPool, SimpleQuickSort) {
+  using exercises::t_s_s::ThreadPool;
+
+  struct SortList {
   exercises::t_s_s::ThreadPool& _pool;
 
   std::list<int> operator()(std::list<int> list) {
@@ -45,9 +50,6 @@ struct SortList {
     return res;
   }
 };
-
-TEST(ThreadPool, SimpleQuickSort) {
-  using exercises::t_s_s::ThreadPool;
 
   auto seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
@@ -85,6 +87,38 @@ TEST(ThreadPool, LargeQuickSort) {
   auto seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
   std::uniform_int_distribution<int> distribution(1, 100);
+
+  struct SortList {
+  exercises::t_s_s::ThreadPool& _pool;
+
+  std::list<int> operator()(std::list<int> list) {
+    if (list.empty()) {
+      return list;
+    }
+
+    auto res = std::list<int>();
+    res.splice(res.begin(), list, list.begin());
+    const auto& pivot = *res.begin();
+    auto divide_point =
+        std::partition(list.begin(), list.end(),
+                       [&](const int& item) { return item < pivot; });
+    auto new_list_low = std::list<int>();
+    new_list_low.splice(new_list_low.end(), list, list.begin(), divide_point);
+    auto list_low_future =
+        _pool.submit(SortList{_pool}, std::move(new_list_low));
+    auto new_list_high = SortList{_pool}(std::move(list));
+
+    while (list_low_future.wait_for(std::chrono::seconds(0)) !=
+           std::future_status::ready) {
+      _pool.runPendingTask();
+    }
+
+    res.splice(res.end(), new_list_high);
+    res.splice(res.begin(), list_low_future.get());
+
+    return res;
+  }
+};
 
   constexpr int n = 8000;
   std::list<int> random_list;
