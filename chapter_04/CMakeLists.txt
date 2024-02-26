@@ -1,2 +1,0 @@
-add_executable(thread_hello_world thread_hello_world.cpp)
-add_executable(thread_matrix thread_matrix.cpp)
